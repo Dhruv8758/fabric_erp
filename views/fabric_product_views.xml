@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Action Stock Entry List -->
+    <record id="action_fabric_product_stock_entry_list" model="ir.actions.act_window">
+        <field name="name">Stock Ledger</field>
+        <field name="res_model">fabric.product.stock.entry</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Action Product Sales Reporting -->
+    <record id="action_fabric_product_sales_report" model="ir.actions.act_window">
+        <field name="name">Product Sales Report</field>
+        <field name="res_model">fabric.product.stock.entry</field>
+        <field name="view_mode">list,pivot,graph</field>
+        <field name="context">{'search_default_group_product': 1, 'search_default_group_date_month': 1}</field>
+    </record>
+
+    <!-- Action Product -->
+    <record id="action_fabric_product" model="ir.actions.act_window">
+        <field name="name">Products / Inventory</field>
+        <field name="res_model">fabric.product</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Product Form View -->
+    <record id="view_fabric_product_form" model="ir.ui.view">
+        <field name="name">fabric.product.form</field>
+        <field name="model">fabric.product</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_manual_stock_in" type="object" string="Update Stock" class="oe_highlight"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" icon="fa-cubes" type="action" name="%(action_fabric_product_stock_entry_list)d" context="{'search_default_product_id': id}">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_value"><field name="quantity"/></span>
+                                <span class="o_stat_text">In Stock</span>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Product Name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="unit"/>
+                        </group>
+                        <group>
+                            <field name="price_per_unit"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Product list View -->
+    <record id="view_fabric_product_list" model="ir.ui.view">
+        <field name="name">fabric.product.list</field>
+        <field name="model">fabric.product</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="quantity &lt;= 0">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="unit"/>
+                <field name="price_per_unit"/>
+                <field name="quantity" string="In Stock"/>
+            </list>
+        </field>
+    </record>
+
+
+
+    <!-- Stock Entry Form View (for Wizard) -->
+    <record id="view_fabric_product_stock_entry_form" model="ir.ui.view">
+        <field name="name">fabric.product.stock.entry.form</field>
+        <field name="model">fabric.product.stock.entry</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="product_id" readonly="1" options="{'no_open': True}"/>
+                        <field name="entry_type" readonly="1"/>
+                        <field name="date"/>
+                        <field name="quantity"/>
+                        <field name="reference"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Stock Entry list View -->
+    <record id="view_fabric_product_stock_entry_list" model="ir.ui.view">
+        <field name="name">fabric.product.stock.entry.list</field>
+        <field name="model">fabric.product.stock.entry</field>
+        <field name="arch" type="xml">
+            <list create="false" edit="false">
+                <field name="date"/>
+                <field name="product_id"/>
+                <field name="entry_type" widget="badge" decoration-success="entry_type == 'in'" decoration-danger="entry_type == 'out'"/>
+                <field name="signed_quantity" sum="Net Total"/>
+                <field name="reference"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Stock Entry Search View (for filtering Day/Month/Year logic) -->
+    <record id="view_fabric_product_stock_entry_search" model="ir.ui.view">
+        <field name="name">fabric.product.stock.entry.search</field>
+        <field name="model">fabric.product.stock.entry</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="product_id"/>
+                <field name="date"/>
+                <filter string="Sales (Stock Out)" name="filter_sales" domain="[('entry_type', '=', 'out')]"/>
+                <filter string="Stock In" name="filter_in" domain="[('entry_type', '=', 'in')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Product" name="group_product" context="{'group_by':'product_id'}"/>
+                    <filter string="Date (Day)" name="group_date_day" context="{'group_by':'date:day'}"/>
+                    <filter string="Date (Month)" name="group_date_month" context="{'group_by':'date:month'}"/>
+                    <filter string="Date (Quarter)" name="group_date_quarter" context="{'group_by':'date:quarter'}"/>
+                    <filter string="Date (Year)" name="group_date_year" context="{'group_by':'date:year'}"/>
+                </group>
+                <searchpanel>
+                    <field name="product_id" icon="fa-cube" enable_counters="1" select="multi"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
+    <!-- Stock Entry Pivot View (Reporting) -->
+    <record id="view_fabric_product_stock_entry_pivot" model="ir.ui.view">
+        <field name="name">fabric.product.stock.entry.pivot</field>
+        <field name="model">fabric.product.stock.entry</field>
+        <field name="arch" type="xml">
+            <pivot string="Product Sales Analysis">
+                <field name="product_id" type="row"/>
+                <field name="date" type="col" interval="month"/>
+                <field name="signed_quantity" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Stock Entry Graph View -->
+    <record id="view_fabric_product_stock_entry_graph" model="ir.ui.view">
+        <field name="name">fabric.product.stock.entry.graph</field>
+        <field name="model">fabric.product.stock.entry</field>
+        <field name="arch" type="xml">
+            <graph string="Product Sales Graph">
+                <field name="date" interval="month"/>
+                <field name="signed_quantity" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+</odoo>

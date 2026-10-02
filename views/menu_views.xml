@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- CLIENT ACTIONS FOR CUSTOM INTERACTIVE DASHBOARD & SALE SHEET -->
+
+    <record id="action_fabric_daily_sheet_interactive" model="ir.actions.client">
+        <field name="name">Daily Sales Sheet</field>
+        <field name="tag">fabric_erp.daily_sale_sheet</field>
+    </record>
+
+    <!-- TOP MENU ROOT -->
+    <menuitem id="menu_fabric_root" name="Aaradhya ERP" web_icon="fabric_erp,static/description/icon.png" sequence="0"/>
+
+    <!-- MAIN DIRECT TOP MENUS -->
+    <menuitem id="menu_fabric_dashboard_item" name="Dashboard" parent="menu_fabric_root" action="action_fabric_dashboard" sequence="1"/>
+    <menuitem id="menu_fabric_daily_sheet_item" name="Daily Sale Sheet" parent="menu_fabric_root" action="action_fabric_daily_sheet_interactive" sequence="2"/>
+    <menuitem id="menu_fabric_customer_item" name="Customer Khata" parent="menu_fabric_root" action="action_fabric_customer" sequence="3"/>
+
+    <menuitem id="menu_fabric_quick_note_item" name="Temp Visit Notes" parent="menu_fabric_root" action="action_fabric_visit_note" sequence="5"/>
+    
+    <!-- INVENTORY / PRODUCT MENUS -->
+    <menuitem id="menu_fabric_inventory_cat" name="Inventory" parent="menu_fabric_root" sequence="4"/>
+    <menuitem id="menu_fabric_product_item" name="Products / Stock" parent="menu_fabric_inventory_cat" action="action_fabric_product" sequence="1"/>
+    <menuitem id="menu_fabric_product_sales_report_item" name="Product Sales Report" parent="menu_fabric_inventory_cat" action="action_fabric_product_sales_report" sequence="2"/>
+
+    <!-- ALL SETTINGS & MASTERS SUB-MENU -->
+    <menuitem id="menu_fabric_settings_cat" name="Settings" parent="menu_fabric_root" sequence="6"/>
+    
+
+    <menuitem id="menu_fabric_daily_records" name="All Daily Sheet Records" parent="menu_fabric_settings_cat" action="action_fabric_daily_sheet" sequence="6"/>
+</odoo>
+

@@ -1,0 +1,756 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="fabric_erp.FabricDashboard" owl="1">
+        <div class="o_fabric_dashboard w-100 h-100 overflow-auto bg-light p-4" style="font-family: Arial, sans-serif;">
+            
+            <style>
+                .kpi-card {
+                    transition: transform 0.2s ease, box-shadow 0.2s ease;
+                    border: 1px solid #e2e8f0 !important;
+                    cursor: pointer;
+                }
+                .kpi-card:hover {
+                    transform: translateY(-3px);
+                    box-shadow: 0 10px 25px rgba(0,0,0,0.08) !important;
+                }
+                .action-card-btn {
+                    transition: transform 0.2s ease, box-shadow 0.2s ease;
+                    cursor: pointer;
+                }
+                .action-card-btn:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.06) !important;
+                }
+                .btn-bg-white {
+                    background-color: #ffffff;
+                }
+                .btn-outline-primary:hover,
+                .btn-outline-primary.bg-white:hover,
+                .btn-outline-primary.btn-bg-white:hover {
+                    background-color: var(--o-brand-primary, #714B67) !important;
+                    color: #ffffff !important;
+                    border-color: var(--o-brand-primary, #714B67) !important;
+                }
+                .btn-outline-success:hover,
+                .btn-outline-success.bg-white:hover,
+                .btn-outline-success.btn-bg-white:hover {
+                    background-color: #198754 !important;
+                    color: #ffffff !important;
+                    border-color: #198754 !important;
+                }
+                .btn-outline-warning:hover,
+                .btn-outline-warning.bg-white:hover,
+                .btn-outline-warning.btn-bg-white:hover {
+                    background-color: #ffc107 !important;
+                    color: #212529 !important;
+                    border-color: #ffc107 !important;
+                }
+                .btn-outline-info:hover,
+                .btn-outline-info.bg-white:hover,
+                .btn-outline-info.btn-bg-white:hover {
+                    background-color: #0dcaf0 !important;
+                    color: #ffffff !important;
+                    border-color: #0dcaf0 !important;
+                }
+                .btn-outline-secondary:hover,
+                .btn-outline-secondary.bg-white:hover,
+                .btn-outline-secondary.btn-bg-white:hover {
+                    background-color: #6c757d !important;
+                    color: #ffffff !important;
+                    border-color: #6c757d !important;
+                }
+                .btn-outline-danger:hover,
+                .btn-outline-danger.bg-white:hover,
+                .btn-outline-danger.btn-bg-white:hover {
+                    background-color: #dc3545 !important;
+                    color: #ffffff !important;
+                    border-color: #dc3545 !important;
+                }
+            </style>
+
+            <!-- HEADER BAR -->
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4 pb-2 border-bottom">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                        <span class="badge bg-white text-secondary border px-3 py-1 rounded-pill fw-bold">
+                            <i class="fa fa-calendar me-1"></i> <t t-esc="state.date"/>
+                        </span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 rounded-pill fw-bold">
+                            <i class="fa fa-refresh me-1"></i> Realtime Sync Active
+                        </span>
+                    </div>
+                    <h2 class="fw-bold text-dark m-0">Aaradhya ERP Dashboard</h2>
+                    <span class="text-muted small">Overview of daily sales, customer khata balances, and expense ledgers.</span>
+                </div>
+                <div class="d-flex w-100 w-md-auto mt-3 mt-md-0 pb-1 gap-2 justify-content-between">
+                    <button class="btn btn-info text-white fw-bold px-1 px-md-3 py-2 rounded-3 shadow-sm flex-fill d-flex align-items-center justify-content-center" t-on-click="openQuickTempNoteModal">
+                        <i class="fa fa-pencil-square-o me-1"></i>
+                        <span class="d-inline d-md-none" style="font-size: 0.75rem;">Note</span>
+                        <span class="d-none d-md-inline">Quick Visit</span>
+                    </button>
+                    <button class="btn btn-primary fw-bold px-1 px-md-3 py-2 rounded-3 shadow-sm flex-fill d-flex align-items-center justify-content-center" t-on-click="() => this.openDailySaleSheet('sale-section')">
+                        <i class="fa fa-plus me-1"></i>
+                        <span class="d-inline d-md-none" style="font-size: 0.75rem;">Sale</span>
+                        <span class="d-none d-md-inline">New Sale</span>
+                    </button>
+                    <button class="btn btn-outline-success fw-bold px-1 px-md-3 py-2 rounded-3 shadow-sm btn-bg-white flex-fill d-flex align-items-center justify-content-center" t-on-click="openCustomerKhataForm">
+                        <i class="fa fa-level-down me-1"></i>
+                        <span class="d-inline d-md-none" style="font-size: 0.75rem;">Jama</span>
+                        <span class="d-none d-md-inline">Receive Jama</span>
+                    </button>
+                    <button class="btn btn-outline-warning text-dark fw-bold px-1 px-md-3 py-2 rounded-3 shadow-sm btn-bg-white flex-fill d-flex align-items-center justify-content-center" t-on-click="() => this.openDailySaleSheet('shopexp-section')">
+                        <i class="fa fa-book me-1"></i>
+                        <span class="d-inline d-md-none" style="font-size: 0.75rem;">Exp</span>
+                        <span class="d-none d-md-inline">Log Expense</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- DASHBOARD DATE / PERIOD FILTER BAR -->
+            <div class="card shadow-sm border-0 rounded-3 p-3 mb-4 bg-white border-start border-4 border-primary">
+                <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-3">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                            <span class="badge bg-primary text-white fw-bold px-3 py-1 rounded-pill">
+                                <i class="fa fa-filter me-1"></i> DASHBOARD FILTER
+                            </span>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 rounded-pill fw-bold">
+                                <i class="fa fa-calendar me-1"></i> <t t-esc="state.periodTitle"/>
+                            </span>
+                        </div>
+                        <h6 class="fw-bold text-dark m-0">Filter Sales, Expenses &amp; Analytics Data</h6>
+                        <span class="text-muted small">Select date, month, year, or all time filter to view metrics according to your selected period.</span>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center gap-2 w-100 w-md-auto mt-3 mt-lg-0">
+                        <!-- FILTER TYPE BUTTONS -->
+                        <div class="w-100 w-md-auto pb-1">
+                            <div class="btn-group d-flex w-100" role="group">
+                                <button type="button" t-att-class="state.filterType === 'today' ? 'btn btn-primary px-1 py-2 flex-fill' : 'btn btn-outline-primary btn-bg-white px-1 py-2 flex-fill'" t-on-click="() => this.setFilterType('today')">
+                                    <i class="fa fa-calendar-check-o d-none d-md-inline me-md-1"></i> <span class="fw-bold" style="font-size: 0.75rem;">Today</span>
+                                </button>
+                                <button type="button" t-att-class="state.filterType === 'date' ? 'btn btn-primary px-1 py-2 flex-fill' : 'btn btn-outline-primary btn-bg-white px-1 py-2 flex-fill'" t-on-click="() => this.setFilterType('date')">
+                                    <i class="fa fa-calendar d-none d-md-inline me-md-1"></i> <span class="fw-bold" style="font-size: 0.75rem;">Date</span>
+                                </button>
+                                <button type="button" t-att-class="state.filterType === 'month' ? 'btn btn-primary px-1 py-2 flex-fill' : 'btn btn-outline-primary btn-bg-white px-1 py-2 flex-fill'" t-on-click="() => this.setFilterType('month')">
+                                    <i class="fa fa-calendar-o d-none d-md-inline me-md-1"></i> <span class="fw-bold" style="font-size: 0.75rem;">Month</span>
+                                </button>
+                                <button type="button" t-att-class="state.filterType === 'year' ? 'btn btn-primary px-1 py-2 flex-fill' : 'btn btn-outline-primary btn-bg-white px-1 py-2 flex-fill'" t-on-click="() => this.setFilterType('year')">
+                                    <i class="fa fa-bar-chart d-none d-md-inline me-md-1"></i> <span class="fw-bold" style="font-size: 0.75rem;">Year</span>
+                                </button>
+                                <button type="button" t-att-class="state.filterType === 'all' ? 'btn btn-primary px-1 py-2 flex-fill' : 'btn btn-outline-primary btn-bg-white px-1 py-2 flex-fill'" t-on-click="() => this.setFilterType('all')">
+                                    <i class="fa fa-globe d-none d-md-inline me-md-1"></i> <span class="fw-bold" style="font-size: 0.75rem;">All Time</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- DATE INPUT CONTROL (WHEN 'date' SELECTED) -->
+                        <t t-if="state.filterType === 'date'">
+                            <div class="input-group" style="width: 170px;">
+                                <input type="date" class="form-control fw-bold border-primary" t-model="state.selectedDate" t-on-change="() => this.onFilterValueChange()"/>
+                            </div>
+                        </t>
+
+                        <!-- MONTH SELECT CONTROL (WHEN 'month' SELECTED) -->
+                        <t t-if="state.filterType === 'month'">
+                            <div class="input-group" style="width: 200px;">
+                                <select class="form-select fw-bold border-primary" t-model="state.selectedMonth" t-on-change="() => this.onFilterValueChange()">
+                                    <t t-foreach="state.availableMonths" t-as="m" t-key="m.code">
+                                        <option t-att-value="m.code" t-esc="m.name"/>
+                                    </t>
+                                </select>
+                            </div>
+                        </t>
+
+                        <!-- YEAR SELECT CONTROL (WHEN 'year' SELECTED) -->
+                        <t t-if="state.filterType === 'year'">
+                            <div class="input-group" style="width: 140px;">
+                                <select class="form-select fw-bold border-primary" t-model="state.selectedYear" t-on-change="() => this.onFilterValueChange()">
+                                    <t t-foreach="state.availableYears" t-as="y" t-key="y">
+                                        <option t-att-value="y" t-esc="y"/>
+                                    </t>
+                                </select>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI TOP CARDS -->
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 row-cols-lg-4 g-3 mb-4">
+                <!-- SALES KPI CARD -->
+                <div class="col">
+                    <div class="card kpi-card shadow-sm border-0 rounded-3 p-3 h-100 bg-white d-flex flex-column justify-content-between" t-on-click="() => this.openDailySaleSheet('sale-section')">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="p-2 bg-primary-subtle text-primary rounded-3"><i class="fa fa-file-text-o fa-lg"></i></div>
+                                <span class="badge bg-primary-subtle text-primary fw-bold"><t t-esc="state.bills_count"/> BILLS</span>
+                            </div>
+                            <span class="text-muted small fw-bold text-uppercase d-block"><t t-esc="state.periodLabel"/> SALES</span>
+                            <h3 class="fw-bold text-dark my-1"><t t-esc="formatNum(state.todays_sales)"/></h3>
+                        </div>
+                        <div class="text-primary small fw-bold mt-2">
+                            View Daily Sales <i class="fa fa-angle-right"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CUSTOMER UDHAAR DUE -->
+                <div class="col">
+                    <div class="card kpi-card shadow-sm border-0 rounded-3 p-3 h-100 bg-white d-flex flex-column justify-content-between" t-on-click="openCustomerKhata">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="p-2 bg-danger-subtle text-danger rounded-3"><i class="fa fa-users fa-lg"></i></div>
+                                <span class="badge bg-danger text-white fw-bold">ACTION REQ</span>
+                            </div>
+                            <span class="text-muted small fw-bold text-uppercase d-block">CUSTOMER UDHAAR DUE</span>
+                            <h3 class="fw-bold text-dark my-1"><t t-esc="formatNum(state.udhaar_due)"/></h3>
+                        </div>
+                        <div class="text-primary small fw-bold mt-2">
+                            Manage Khata <i class="fa fa-angle-right"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SHOP EXPENSE -->
+                <div class="col">
+                    <div class="card kpi-card shadow-sm border-0 rounded-3 p-3 h-100 bg-white d-flex flex-column justify-content-between" t-on-click="() => this.openDailySaleSheet('shopexp-section')">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="p-2 bg-warning-subtle text-warning rounded-3"><i class="fa fa-building-o fa-lg"></i></div>
+                                <span class="badge bg-warning-subtle text-dark fw-bold">OPERATING</span>
+                            </div>
+                            <span class="text-muted small fw-bold text-uppercase d-block"><t t-esc="state.periodLabel"/> SHOP EXPENSE</span>
+                            <h3 class="fw-bold text-dark my-1"><t t-esc="formatNum(state.shop_expense)"/></h3>
+                        </div>
+                        <div class="text-primary small fw-bold mt-2">
+                            View Expenses <i class="fa fa-angle-right"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HOME EXPENSE -->
+                <div class="col">
+                    <div class="card kpi-card shadow-sm border-0 rounded-3 p-3 h-100 bg-white d-flex flex-column justify-content-between" t-on-click="() => this.openDailySaleSheet('homeexp-section')">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="p-2 bg-purple-subtle text-purple rounded-3" style="background:#f3e8ff; color:#9333ea;"><i class="fa fa-home fa-lg"></i></div>
+                                <span class="badge style-purple" style="background:#f3e8ff; color:#9333ea; font-weight:bold;">PERSONAL</span>
+                            </div>
+                            <span class="text-muted small fw-bold text-uppercase d-block"><t t-esc="state.periodLabel"/> HOME EXPENSE</span>
+                            <h3 class="fw-bold text-dark my-1"><t t-esc="formatNum(state.home_expense)"/></h3>
+                        </div>
+                        <div class="text-primary small fw-bold mt-2">
+                            Home Expense <i class="fa fa-angle-right"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MIDDLE SECTION: QUICK ACTIONS & RECENT SALES -->
+            <div class="row g-4 mb-4">
+                <!-- QUICK ACTIONS GRID -->
+                <div class="col-lg-4">
+                    <div class="card shadow-sm border-0 rounded-3 p-3 h-100 bg-white">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold m-0 text-dark"><i class="fa fa-bolt me-1 text-primary"></i> Quick Actions</h6>
+                            <span class="text-muted small">Shortcut Actions</span>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <button class="btn btn-light action-card-btn w-100 p-3 text-center border rounded-3 h-100" t-on-click="openQuickTempNoteModal">
+                                    <i class="fa fa-pencil-square-o text-info fa-2x mb-1 d-block"></i>
+                                    <strong class="d-block text-dark small">Shop Visit Note</strong>
+                                    <span class="text-muted" style="font-size:10px;">Quick desc &amp; amount</span>
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button class="btn btn-light action-card-btn w-100 p-3 text-center border rounded-3 h-100" t-on-click="() => this.openDailySaleSheet('sale-section')">
+                                    <i class="fa fa-file-text text-primary fa-2x mb-1 d-block"></i>
+                                    <strong class="d-block text-dark small">Add Daily Sale</strong>
+                                    <span class="text-muted" style="font-size:10px;">Record new bill</span>
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button class="btn btn-light action-card-btn w-100 p-3 text-center border rounded-3 h-100" t-on-click="openCustomerKhataForm">
+                                    <i class="fa fa-level-down text-success fa-2x mb-1 d-block"></i>
+                                    <strong class="d-block text-dark small">Receive Jama</strong>
+                                    <span class="text-muted" style="font-size:10px;">Customer payment</span>
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button class="btn btn-light action-card-btn w-100 p-3 text-center border rounded-3 h-100" t-on-click="openCustomerKhataForm">
+                                    <i class="fa fa-user-plus text-danger fa-2x mb-1 d-block"></i>
+                                    <strong class="d-block text-dark small">Add Customer</strong>
+                                    <span class="text-muted" style="font-size:10px;">Register party</span>
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button class="btn btn-light action-card-btn w-100 p-3 text-center border rounded-3 h-100" t-on-click="() => this.openDailySaleSheet('shopexp-section')">
+                                    <i class="fa fa-calculator text-warning fa-2x mb-1 d-block"></i>
+                                    <strong class="d-block text-dark small">Log Expense</strong>
+                                    <span class="text-muted" style="font-size:10px;">Shop &amp; home cost</span>
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button class="btn btn-light action-card-btn w-100 p-3 text-center border rounded-3 h-100" t-on-click="openCustomerKhata">
+                                    <i class="fa fa-users text-primary fa-2x mb-1 d-block"></i>
+                                    <strong class="d-block text-dark small">Customer Khata</strong>
+                                    <span class="text-muted" style="font-size:10px;">Manage ledgers</span>
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RECENT SALES TABLE -->
+                <div class="col-lg-8">
+                    <div class="card shadow-sm border-0 rounded-3 p-3 h-100 bg-white">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h6 class="fw-bold m-0 text-dark"><i class="fa fa-list text-primary me-1"></i> Recent Daily Sales Entries</h6>
+                                <span class="text-muted small">Latest transactions logged into Aaradhya ERP</span>
+                            </div>
+                            <a href="#" class="btn btn-sm btn-link fw-bold text-decoration-none" t-on-click.prevent="() => this.openDailySaleSheet('sale-section')">View All <i class="fa fa-angle-right"></i></a>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0" style="font-size: 13px;">
+                                <thead class="table-light text-muted">
+                                    <tr>
+                                        <th>BILL NO</th>
+                                        <th>CUSTOMER</th>
+                                        <th class="text-end">TOTAL</th>
+                                        <th class="text-end">PAID</th>
+                                        <th class="text-center">MODE</th>
+                                        <th class="text-center">ACTION</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="state.recent_sales" t-as="sale" t-key="sale.bill_no">
+                                        <tr>
+                                            <td class="fw-bold text-dark"><t t-esc="sale.bill_no"/></td>
+                                            <td>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="avatar bg-primary-subtle text-primary fw-bold rounded-circle px-2 py-1" style="font-size:11px;">MT</span>
+                                                    <div>
+                                                        <strong class="d-block text-dark" t-esc="sale.customer"/>
+                                                        <span class="text-muted" style="font-size:10px;" t-esc="sale.date"/>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="text-end fw-bold"><t t-esc="formatNum(sale.total)"/></td>
+                                            <td class="text-end text-success fw-bold"><t t-esc="formatNum(sale.paid)"/></td>
+                                            <td class="text-center">
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1" t-esc="sale.mode"/>
+                                            </td>
+                                            <td class="text-center">
+                                                <button class="btn btn-sm btn-light border py-1 px-2 text-muted" t-on-click="() => this.openDailySaleSheet('sale-section')" title="Receipt">
+                                                    <i class="fa fa-print"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TEMP CUSTOMER SHOP VISIT NOTES SECTION -->
+            <div id="temp-visit-notes-section" class="row g-4 mb-4">
+                <div class="col-12">
+                    <div class="card shadow-sm border-0 rounded-3 p-3 bg-white border-top border-4 border-info">
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 mb-3">
+                            <div>
+                                <h6 class="fw-bold m-0 text-dark">
+                                    <i class="fa fa-sticky-note-o text-info me-1"></i> Customer Shop Visit Quick Notes &amp; Temp Ideas
+                                </h6>
+                                <span class="text-muted small">Log quick descriptions and amounts while visiting customer shops (saved temporarily with time duration tracking &amp; credit status)</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 rounded-pill fw-bold">
+                                    <i class="fa fa-check-circle me-1"></i> Credited: <t t-esc="formatNum(totalCreditedAmount)"/>
+                                </span>
+                                <t t-if="state.tempNotes &amp;&amp; state.tempNotes.length">
+                                    <button class="btn btn-sm btn-outline-danger" t-on-click="clearAllTempNotes" title="Clear all temporary notes">
+                                        <i class="fa fa-trash me-1"></i> Clear All
+                                    </button>
+                                </t>
+                            </div>
+                        </div>
+
+                        <!-- FILTER TABS & QUICK STATS BAR -->
+                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" t-att-class="state.tempNoteFilter === 'all' ? 'btn btn-info text-white fw-bold' : 'btn btn-outline-secondary'" t-on-click="() => this.setTempFilter('all')">
+                                    All Notes (<t t-esc="state.tempNotes ? state.tempNotes.length : 0"/>)
+                                </button>
+                                <button type="button" t-att-class="state.tempNoteFilter === 'credited' ? 'btn btn-success text-white fw-bold' : 'btn btn-outline-success'" t-on-click="() => this.setTempFilter('credited')">
+                                    <i class="fa fa-check-circle me-1"></i> Credited (<t t-esc="creditedCount"/>)
+                                </button>
+                                <button type="button" t-att-class="state.tempNoteFilter === 'pending' ? 'btn btn-warning text-dark fw-bold' : 'btn btn-outline-warning text-dark'" t-on-click="() => this.setTempFilter('pending')">
+                                    <i class="fa fa-hourglass-half me-1"></i> Pending (<t t-esc="pendingCount"/>)
+                                </button>
+                                <button type="button" t-att-class="state.tempNoteFilter === 'overdue' ? 'btn text-white fw-bold' : 'btn btn-outline-warning text-dark'" t-att-style="state.tempNoteFilter === 'overdue' ? 'background-color:#fd7e14 !important; border-color:#fd7e14;' : ''" t-on-click="() => this.setTempFilter('overdue')">
+                                    <i class="fa fa-exclamation-triangle me-1"></i> Over 24h (<t t-esc="overdueCount"/>)
+                                </button>
+                            </div>
+                            <span class="text-muted small">Green = Credited | <strong style="color:#fd7e14;">Orange = Pending &gt;24 Hours</strong></span>
+                        </div>
+
+                        <!-- QUICK INPUT FORM BAR -->
+                        <div class="row g-2 mb-3 p-2 bg-light rounded-3 border">
+                            <div class="col-md-3">
+                                <input type="text" class="form-control" t-model="state.newNoteDesc" placeholder="Enter Description / Store Note" t-on-keydown="(ev) => ev.key === 'Enter' &amp;&amp; this.addTempNote()"/>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="input-group">
+                                    <input type="number" class="form-control" t-model="state.newNoteRoll" placeholder="Rolls" step="any"/>
+                                    <button class="btn btn-outline-primary" type="button" t-on-click="openVisitRollModal" title="Breakdown individual roll meters (e.g. 100 + 120 + 95)">
+                                        <i class="fa fa-calculator"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="input-group">
+                                    <input type="number" class="form-control" t-model="state.newNoteMeter" placeholder="Meter / Qty" step="any"/>
+                                    <button class="btn btn-outline-secondary" type="button" t-on-click="openVisitRollModal" title="Breakdown roll meters">
+                                        <i class="fa fa-list-ol"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <input type="number" class="form-control" t-model="state.newNoteAmount" placeholder="Amount" step="any" t-on-keydown="(ev) => ev.key === 'Enter' &amp;&amp; this.addTempNote()"/>
+                            </div>
+                            <div class="col-md-2 d-flex gap-1">
+                                <button class="btn btn-info text-white fw-bold flex-grow-1" t-on-click="() => this.addTempNote(false)">
+                                    <i class="fa fa-plus me-1"></i> Add Entry
+                                </button>
+                                <button class="btn btn-success text-white fw-bold" t-on-click="() => this.addTempNote(true)" title="Add directly as Credited (Green)">
+                                    <i class="fa fa-check"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- TEMP NOTES TABLE LIST VIEW -->
+                        <div class="table-responsive">
+                            <table class="table align-middle mb-0 text-center" style="font-size: 13px;">
+                                <thead class="table-light text-muted">
+                                    <tr>
+                                        <th style="width: 50px;">SR NO</th>
+                                        <th class="text-start">DESCRIPTION</th>
+                                        <th class="text-center" style="width: 80px;">ROLL</th>
+                                        <th class="text-center" style="width: 90px;">METER</th>
+                                        <th class="text-end" style="width: 130px;">AMOUNT</th>
+                                        <th style="width: 130px;">TIME / CREDIT TIME</th>
+                                        <th style="width: 120px;">TIME DURATION</th>
+                                        <th style="width: 150px;" class="text-center">PAYMENT STATUS</th>
+                                        <th style="width: 50px;">ACTION</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-if="!filteredTempNotes || !filteredTempNotes.length">
+                                        <tr>
+                                            <td colspan="9" class="text-muted py-4">
+                                                <i class="fa fa-info-circle me-1"></i> No temporary visit notes found for current filter. Add a description, roll, meter &amp; amount above!
+                                            </td>
+                                        </tr>
+                                    </t>
+                                    <t t-foreach="filteredTempNotes" t-as="note" t-key="note.id">
+                                        <t t-set="isOver24" t-value="this.isOver24Hours(note.createdAt)"/>
+                                        <tr t-att-class="isOver24 ? 'table-warning' : (note.isCredited ? 'table-success' : '')" t-att-style="isOver24 ? 'background-color: #ffe8cc !important; border-left: 5px solid #fd7e14;' : (note.isCredited ? 'background-color: #d1e7dd !important; border-left: 5px solid #198754;' : '')">
+                                            <td class="fw-bold text-secondary"><t t-esc="note_index + 1"/></td>
+                                            <td class="text-start">
+                                                <strong t-att-class="note.isCredited ? 'text-success fw-bold' : (isOver24 ? 'text-dark fw-bold' : 'text-dark')"><t t-esc="note.description"/></strong>
+                                                <t t-if="note.isCredited">
+                                                    <span class="badge bg-success text-white ms-2" style="font-size:10px;">
+                                                        <i class="fa fa-arrow-down me-1"></i>MONEY CREDITED
+                                                    </span>
+                                                </t>
+                                                <t t-if="isOver24">
+                                                    <span class="badge text-white ms-2" style="font-size:10px; background-color: #fd7e14;">
+                                                        <i class="fa fa-exclamation-triangle me-1"></i>OVER 24H ENTRY
+                                                    </span>
+                                                </t>
+                                            </td>
+                                            <td class="text-center fw-bold text-dark">
+                                                <t t-esc="note.rollQty ? note.rollQty : '-'"/>
+                                            </td>
+                                            <td class="text-center fw-bold text-primary">
+                                                <t t-esc="note.qty ? note.qty : '-'"/>
+                                            </td>
+                                            <td class="text-end">
+                                                <t t-if="note.isCredited">
+                                                    <span class="badge bg-success text-white fs-6 fw-bold px-3 py-1 shadow-sm">
+                                                        + <t t-esc="formatNum(note.amount)"/>
+                                                    </span>
+                                                </t>
+                                                <t t-if="!note.isCredited &amp;&amp; isOver24">
+                                                    <span class="badge text-white fs-6 fw-bold px-3 py-1 shadow-sm" style="background-color: #fd7e14;">
+                                                        <t t-esc="formatNum(note.amount)"/>
+                                                    </span>
+                                                </t>
+                                                <t t-if="!note.isCredited &amp;&amp; !isOver24">
+                                                    <span class="fw-bold text-dark fs-6"><t t-esc="formatNum(note.amount)"/></span>
+                                                </t>
+                                            </td>
+                                            <td>
+                                                <span t-att-class="note.isCredited ? 'badge bg-success-subtle text-success border border-success-subtle' : (isOver24 ? 'badge text-dark border border-warning' : 'badge bg-light text-dark border')" t-att-style="isOver24 ? 'background-color:#ffd8a8;' : ''">
+                                                    <i class="fa fa-clock-o me-1"></i><t t-esc="note.formattedTime"/>
+                                                </span>
+                                                <t t-if="note.isCredited">
+                                                    <span class="d-block text-success fw-bold mt-1" style="font-size: 10px;">(Credited Time)</span>
+                                                </t>
+                                            </td>
+                                            <td>
+                                                <span t-att-class="note.isCredited ? 'badge bg-success text-white px-2 py-1 fw-bold' : (isOver24 ? 'badge text-white px-2 py-1 fw-bold' : 'badge bg-warning-subtle text-dark border border-warning-subtle px-2 py-1 fw-bold')" t-att-style="isOver24 ? 'background-color:#fd7e14;' : ''">
+                                                    <i class="fa fa-hourglass-half me-1"></i><t t-esc="getDurationStr(note.createdAt)"/>
+                                                </span>
+                                            </td>
+                                            <td class="text-center">
+                                                <button t-if="note.isCredited" class="btn btn-sm btn-success text-white fw-bold px-3 py-1 rounded-pill shadow-sm" t-on-click="() => this.toggleCreditStatus(note)" title="Click to change back to Pending">
+                                                    <i class="fa fa-check-circle me-1"></i> Credited
+                                                </button>
+                                                <button t-if="!note.isCredited &amp;&amp; isOver24" class="btn btn-sm text-white fw-bold px-3 py-1 rounded-pill shadow-sm" style="background-color: #fd7e14; border-color: #fd7e14;" t-on-click="() => this.toggleCreditStatus(note)" title="Over 24h! Click to Mark Money Credited (Green)">
+                                                    <i class="fa fa-exclamation-circle me-1"></i> Mark Credited (&gt;24h)
+                                                </button>
+                                                <button t-if="!note.isCredited &amp;&amp; !isOver24" class="btn btn-sm btn-outline-success fw-bold px-3 py-1 rounded-pill btn-bg-white" t-on-click="() => this.toggleCreditStatus(note)" title="Click to Mark Money Credited (Green)">
+                                                    <i class="fa fa-plus-circle me-1"></i> Mark Credited
+                                                </button>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-danger py-1 px-2" t-on-click="() => this.removeTempNote(note.id)" title="Remove Note">
+                                                    <i class="fa fa-times"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                                <t t-if="state.tempNotes &amp;&amp; state.tempNotes.length">
+                                    <tfoot class="table-light fw-bold">
+                                        <tr>
+                                            <td colspan="2" class="text-end pe-3">SUMMARY TOTALS (<t t-esc="state.tempNotes.length"/> entries)</td>
+                                            <td class="text-end text-success fs-6">
+                                                TOTAL: <t t-esc="formatNum(totalTempNotesAmount)"/>
+                                            </td>
+                                            <td colspan="4" class="text-start ps-3 text-success">
+                                                <span class="badge bg-success text-white px-3 py-1 rounded-pill">
+                                                    CREDITED TOTAL: <t t-esc="formatNum(totalCreditedAmount)"/>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </t>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BOTTOM RECENT EXPENSES -->
+            <div class="row g-4 mb-4">
+                <div class="col-12">
+                    <div class="card shadow-sm border-0 rounded-3 p-3 bg-white">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h6 class="fw-bold m-0 text-dark"><i class="fa fa-calculator text-warning me-1"></i> Recent Expense &amp; Operating Cost Entries</h6>
+                                <span class="text-muted small">Tracked shop operating costs and home expenses</span>
+                            </div>
+                            <a href="#" class="btn btn-sm btn-link fw-bold text-decoration-none" t-on-click.prevent="() => this.openDailySaleSheet('shopexp-section')">View Expenses <i class="fa fa-angle-right"></i></a>
+                        </div>
+                        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 g-3">
+                            <t t-foreach="state.recent_expenses" t-as="exp" t-key="exp.name">
+                                <div class="col">
+                                    <div class="p-3 border rounded-3 bg-light h-100 kpi-card" t-on-click="() => this.openDailySaleSheet(exp.category === 'Home Expense' ? 'homeexp-section' : 'shopexp-section')">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="badge bg-warning-subtle text-dark fw-bold" style="font-size:10px;" t-esc="exp.category"/>
+                                            <span class="text-muted" style="font-size:10px;" t-esc="exp.date"/>
+                                        </div>
+                                        <strong class="d-block text-dark text-truncate" t-esc="exp.name"/>
+                                        <span class="text-muted d-block text-truncate mb-2" style="font-size:11px;" t-esc="exp.note"/>
+                                        <h5 class="fw-bold text-dark m-0"><t t-esc="formatNum(exp.amount)"/></h5>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MONTH-WISE EXPENSES ANALYTICS -->
+            <div class="row g-4 mb-4">
+                <div class="col-12">
+                    <div class="card shadow-sm border-0 rounded-3 p-3 bg-white">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h6 class="fw-bold m-0 text-dark"><i class="fa fa-calendar-check-o text-danger me-1"></i> Month-wise Expense Ledger</h6>
+                                <span class="text-muted small">Aggregated Shop Operating Costs &amp; Home Expenses per month</span>
+                            </div>
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-1 rounded-pill fw-bold">
+                                Monthly Summary
+                            </span>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover align-middle mb-0 text-center" style="font-size: 13px;">
+                                <thead style="background: #1e293b; color: #ffffff;">
+                                    <tr>
+                                        <th class="text-start py-2 text-white">MONTH</th>
+                                        <th class="text-end py-2 text-warning">SHOP EXPENSE</th>
+                                        <th class="text-end py-2" style="color:#e9d5ff;">HOME EXPENSE</th>
+                                        <th class="text-end py-2 fw-bold" style="color:#fca5a5;">TOTAL MONTHLY EXPENSE</th>
+                                        <th class="py-2 text-white">RECORDED ENTRIES</th>
+                                        <th class="py-2 text-white">STATUS</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="state.monthly_expenses" t-as="mExp" t-key="mExp.month">
+                                        <tr>
+                                            <td class="text-start fw-bold text-dark">
+                                                <i class="fa fa-calendar text-muted me-2"></i><t t-esc="mExp.month"/>
+                                            </td>
+                                            <td class="text-end fw-bold text-warning"><t t-esc="formatNum(mExp.shop_expense)"/></td>
+                                            <td class="text-end fw-bold" style="color:#9333ea;"><t t-esc="formatNum(mExp.home_expense)"/></td>
+                                            <td class="text-end fw-bold text-danger fs-6"><t t-esc="formatNum(mExp.total)"/></td>
+                                            <td><span class="badge bg-secondary rounded-pill" t-esc="mExp.count"/> entries</td>
+                                            <td>
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Audited</span>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KHATA ALERT BANNER -->
+            <div class="alert bg-primary-subtle text-primary border border-primary-subtle rounded-3 p-3 d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 shadow-sm">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-primary text-white p-3 rounded-circle d-none d-sm-block"><i class="fa fa-bell-o fa-lg"></i></div>
+                    <div>
+                        <h6 class="fw-bold m-0">Stay Updated with Customer Khata Balances!</h6>
+                        <span class="small">You have <strong t-esc="state.bills_count"/> sales entries recorded today, and <strong t-esc="formatNum(state.udhaar_due)"/> outstanding customer Udhaar requiring collection.</span>
+                    </div>
+                </div>
+                <button class="btn btn-primary fw-bold px-4 py-2 rounded-3 w-100 w-md-auto" t-on-click="openCustomerKhata">
+                    View Udhaar Ledger <i class="fa fa-angle-right"></i>
+                </button>
+            </div>
+
+            <!-- QUICK VISIT NOTE POPUP MODAL -->
+            <t t-if="state.showTempNoteModal">
+                <div class="modal d-block show" tabindex="-1" style="background: rgba(0,0,0,0.5); z-index: 1050;">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content border-0 shadow-lg rounded-3">
+                            <div class="modal-header bg-info text-white">
+                                <h5 class="modal-title fw-bold">
+                                    <i class="fa fa-sticky-note-o me-2"></i> Quick Customer Shop Visit Note
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" t-on-click="closeQuickTempNoteModal"></button>
+                            </div>
+                            <div class="modal-body p-4">
+                                <p class="text-muted small mb-3">Add temporary description &amp; amount when visiting a customer shop. Toggle "Money Credited" to highlight the entry in green!</p>
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-5">
+                                        <label class="fw-bold small text-dark mb-1">Description / Note</label>
+                                        <input type="text" class="form-control" t-model="state.newNoteDesc" placeholder="e.g. Visit Customer Store - Discussed 60/60 Cotton sample"/>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="fw-bold small text-dark mb-1">Roll Qty</label>
+                                        <input type="number" class="form-control" t-model="state.newNoteRoll" placeholder="Rolls" step="any"/>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="fw-bold small text-dark mb-1">Meter / Qty</label>
+                                        <input type="number" class="form-control" t-model="state.newNoteMeter" placeholder="Meters" step="any"/>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="fw-bold small text-dark mb-1">Amount</label>
+                                        <input type="number" class="form-control" t-model="state.newNoteAmount" placeholder="Amount" step="any"/>
+                                    </div>
+                                </div>
+                                <div class="form-check form-switch mb-4 p-2 bg-light rounded border ps-5">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="modalCreditedSwitch" t-model="state.newNoteCredited"/>
+                                    <label class="form-check-label fw-bold text-success" for="modalCreditedSwitch">
+                                        <i class="fa fa-check-circle me-1"></i> Mark as Money Credited (Green Highlight)
+                                    </label>
+                                </div>
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button class="btn btn-secondary fw-bold px-4" t-on-click="closeQuickTempNoteModal">Close</button>
+                                    <button class="btn btn-info text-white fw-bold px-4" t-on-click="() => this.addTempNoteAndClose(false)">
+                                        <i class="fa fa-plus me-1"></i> Add as Pending
+                                    </button>
+                                    <button class="btn btn-success text-white fw-bold px-4 shadow-sm" t-on-click="() => this.addTempNoteAndClose(true)">
+                                        <i class="fa fa-check me-1"></i> Save as Credited (Green)
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </t>
+            <!-- ROLL METERS BREAKDOWN MODAL FOR VISIT NOTES -->
+            <t t-if="state.showVisitRollModal">
+                <div class="modal d-block show" tabindex="-1" style="background: rgba(0,0,0,0.6); z-index: 1060;">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content border-0 shadow-lg rounded-3">
+                            <div class="modal-header bg-primary text-white">
+                                <h5 class="modal-title fw-bold">
+                                    <i class="fa fa-calculator me-2"></i> Roll Meters / Yard Breakdown
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" t-on-click="closeVisitRollModal"></button>
+                            </div>
+                            <div class="modal-body p-4">
+                                <p class="text-muted small mb-3">Enter individual meter values for each roll, or type a quick expression (e.g., <code>100 + 105 + 95</code>):</p>
+                                
+                                <!-- QUICK EXPRESSION INPUT -->
+                                <div class="mb-3">
+                                    <label class="fw-bold small text-muted mb-1">Quick Expression Input (e.g. 100 + 120 + 85)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="fa fa-magic text-primary"></i></span>
+                                        <input type="text" class="form-control fw-bold text-primary" t-att-value="state.quickVisitRollInputStr" t-on-input="(ev) => this.onQuickVisitRollInput(ev.target.value)" placeholder="Type e.g. 100 + 120 + 85"/>
+                                    </div>
+                                </div>
+
+                                <!-- INDIVIDUAL ROLL INPUTS GRID -->
+                                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-2 mb-3 max-h-50 overflow-auto">
+                                    <t t-foreach="state.visitRollMeters" t-as="mVal" t-key="mVal_index">
+                                        <div class="col">
+                                            <div class="input-group input-group-sm">
+                                                <span class="input-group-text bg-light fw-bold text-dark" style="min-width:70px;">Roll <t t-esc="mVal_index + 1"/>:</span>
+                                                <input type="number" class="form-control fw-bold" t-att-value="mVal" t-on-input="(ev) => this.updateVisitRollMeter(mVal_index, ev.target.value)" step="any" placeholder="Meters"/>
+                                                <button class="btn btn-outline-danger" type="button" t-on-click="() => this.removeVisitRollRow(mVal_index)" title="Remove Roll">
+                                                    <i class="fa fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </t>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded border">
+                                    <button class="btn btn-sm btn-outline-primary fw-bold" type="button" t-on-click="addVisitRollRow">
+                                        <i class="fa fa-plus me-1"></i> Add Another Roll
+                                    </button>
+                                    <div class="text-end">
+                                        <span class="text-muted small fw-bold d-block">TOTAL METERS</span>
+                                        <h4 class="fw-bold text-success m-0"><t t-esc="visitRollTotalMeters"/> Meter/Yard</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer bg-light">
+                                <button type="button" class="btn btn-secondary fw-bold px-4" t-on-click="closeVisitRollModal">Cancel</button>
+                                <button type="button" class="btn btn-primary fw-bold px-4 shadow-sm" t-on-click="applyVisitRollBreakdown">
+                                    <i class="fa fa-check me-1"></i> Apply Roll Breakdown
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </t>
+
+        </div>
+    </t>
+</templates>

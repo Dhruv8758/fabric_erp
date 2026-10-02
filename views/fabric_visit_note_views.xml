@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- LIST VIEW FOR TEMP VISIT NOTES -->
+    <record id="view_fabric_visit_note_tree" model="ir.ui.view">
+        <field name="name">fabric.visit.note.tree</field>
+        <field name="model">fabric.visit.note</field>
+        <field name="arch" type="xml">
+            <list string="Customer Shop Visit Quick Notes" decoration-warning="is_over_24h == True" decoration-success="is_credited == True" editable="bottom">
+                <field name="date_12h" string="Date &amp; Time (12h)"/>
+                <field name="date" column_invisible="1"/>
+                <field name="description"/>
+                <field name="amount"/>
+                <field name="time_added_str" string="Time / Credit Time"/>
+                <field name="duration_str" string="Duration"/>
+                <field name="is_over_24h" column_invisible="1"/>
+                <field name="is_credited" widget="boolean_toggle"/>
+                <button name="action_toggle_credited" string="Toggle Credited (Green)" type="object" icon="fa-check-circle"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- FORM VIEW FOR TEMP VISIT NOTES -->
+    <record id="view_fabric_visit_note_form" model="ir.ui.view">
+        <field name="name">fabric.visit.note.form</field>
+        <field name="model">fabric.visit.note</field>
+        <field name="arch" type="xml">
+            <form string="Customer Shop Visit Note">
+                <sheet>
+                    <div class="mb-3 w-100 p-0 m-0">
+                        <h1><field name="description" placeholder="Description e.g. Visited Customer Store..."/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="date"/>
+                            <field name="date_12h" readonly="1"/>
+                            <field name="credited_date" readonly="1"/>
+                            <field name="customer_id"/>
+                            <field name="customer_name"/>
+                        </group>
+                        <group>
+                            <field name="amount"/>
+                            <field name="is_credited" widget="boolean_toggle"/>
+                            <field name="is_over_24h" readonly="1"/>
+                            <field name="time_added_str" readonly="1"/>
+                            <field name="duration_str" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- SEARCH VIEW -->
+    <record id="view_fabric_visit_note_search" model="ir.ui.view">
+        <field name="name">fabric.visit.note.search</field>
+        <field name="model">fabric.visit.note</field>
+        <field name="arch" type="xml">
+            <search string="Search Temp Visit Notes">
+                <field name="description"/>
+                <field name="customer_name"/>
+                <filter string="Credited (Green)" name="credited" domain="[('is_credited', '=', True)]"/>
+                <filter string="Pending" name="pending" domain="[('is_credited', '=', False)]"/>
+                <filter string="Over 24h Entries (Orange)" name="over_24h" domain="[('is_over_24h', '=', True)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Credited Status" name="group_credited" context="{'group_by': 'is_credited'}"/>
+                    <filter string="Date" name="group_date" context="{'group_by': 'date:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ACTION -->
+    <record id="action_fabric_visit_note" model="ir.actions.act_window">
+        <field name="name">Temp Customer Visit Notes List</field>
+        <field name="res_model">fabric.visit.note</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_fabric_visit_note_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Log quick description and amount when visiting customer shops!
+            </p>
+        </field>
+    </record>
+</odoo>

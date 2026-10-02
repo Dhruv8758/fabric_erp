@@ -1,0 +1,843 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="fabric_erp.DailySaleSheetComponent" owl="1">
+        <div class="o_daily_sale_sheet_page w-100 h-100 overflow-auto bg-light p-2 p-md-4">
+            
+            <style>
+                .sheet-container {
+                    max-width: 960px;
+                    margin: 0 auto;
+                    background: #ffffff;
+                    border: 1px solid #c9c9c9;
+                    border-radius: 8px;
+                    padding: 24px 28px 36px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+                }
+                .sheet-title {
+                    text-align: center;
+                    font-size: 24px;
+                    font-weight: bold;
+                    margin-bottom: 6px;
+                    color: #2c3e50;
+                }
+                .sheet-date-row {
+                    text-align: center;
+                    margin-bottom: 20px;
+                }
+                .balance-box {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    background: #eef3f7;
+                    border: 1px solid #c9c9c9;
+                    border-radius: 6px;
+                    padding: 12px 18px;
+                    margin-bottom: 24px;
+                    font-weight: bold;
+                }
+                .sheet-section-title {
+                    font-size: 16px;
+                    font-weight: bold;
+                    margin: 0 0 10px;
+                    padding-bottom: 4px;
+                    border-bottom: 2px solid #2c3e50;
+                    color: #2c3e50;
+                }
+                .table-responsive-mobile {
+                    width: 100%;
+                    overflow-x: auto;
+                    -webkit-overflow-scrolling: touch;
+                    margin-bottom: 8px;
+                }
+                .sheet-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    font-size: 14px;
+                    margin-bottom: 0;
+                }
+                .sheet-table th, .sheet-table td {
+                    border: 1px solid #c9c9c9;
+                    padding: 6px 8px;
+                    text-align: center;
+                }
+                .sheet-table th {
+                    background: #2c3e50;
+                    color: #ffffff;
+                    font-weight: 600;
+                }
+                .sheet-table input, .sheet-table select {
+                    width: 100%;
+                    border: none;
+                    text-align: center;
+                    padding: 4px;
+                    font-size: 14px;
+                    background: transparent;
+                }
+                .sheet-table input:focus, .sheet-table select:focus {
+                    outline: 2px solid #2c7a4b;
+                    background: #ffffff;
+                }
+                .sheet-table tfoot td {
+                    background: #eef3f7;
+                    font-weight: bold;
+                }
+                .final-calc-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    font-size: 15px;
+                }
+                .final-calc-table td {
+                    border: 1px solid #c9c9c9;
+                    padding: 10px 14px;
+                }
+                .final-calc-table td:first-child {
+                    text-align: left;
+                    width: 70%;
+                }
+                .final-calc-table td:last-child {
+                    text-align: right;
+                    font-weight: bold;
+                }
+                .final-calc-table tr.grand-total td {
+                    background: #dff0d8;
+                    font-size: 18px;
+                    font-weight: bold;
+                    color: #2c7a4b;
+                }
+                .minus-text { color: #c0392b; }
+                .remove-row-btn {
+                    background: none;
+                    border: none;
+                    color: #c0392b;
+                    font-size: 16px;
+                    cursor: pointer;
+                }
+
+                /* Mobile Responsive Adjustments */
+                @media (max-width: 768px) {
+                    .o_daily_sale_sheet_page {
+                        padding: 8px !important;
+                    }
+                    .sheet-container {
+                        padding: 14px 10px 24px !important;
+                        border-radius: 6px;
+                    }
+                    .sheet-title {
+                        font-size: 20px;
+                    }
+                    .balance-box {
+                        flex-direction: column;
+                        gap: 8px;
+                        text-align: center;
+                        padding: 10px;
+                    }
+                    .balance-box .input-group {
+                        width: 100% !important;
+                    }
+                    .sheet-table {
+                        min-width: 580px;
+                    }
+                    .sheet-table th, .sheet-table td {
+                        padding: 6px 4px;
+                        font-size: 13px;
+                    }
+                    .sheet-table input, .sheet-table select {
+                        font-size: 14px;
+                        padding: 6px 4px;
+                    }
+                    .final-calc-table {
+                        font-size: 13px;
+                    }
+                    .final-calc-table td {
+                        padding: 8px 10px;
+                    }
+                    .final-calc-table td:first-child {
+                        width: 55%;
+                    }
+                    .final-calc-table tr.grand-total td {
+                        font-size: 15px;
+                    }
+                    .action-buttons-wrapper {
+                        flex-direction: column;
+                        width: 100%;
+                    }
+                    .action-buttons-wrapper .btn {
+                        width: 100%;
+                    }
+                }
+                .add-row-btn {
+                    color: #27ae60;
+                    cursor: pointer;
+                    background: none;
+                    border: none;
+                    font-weight: bold;
+                    font-size: 13px;
+                    padding: 4px 8px;
+                    margin-top: 4px;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 4px;
+                }
+                .add-row-btn:hover {
+                    color: #219150;
+                    text-decoration: underline;
+                }
+                .summary-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    font-size: 14px;
+                    font-weight: bold;
+                }
+                .summary-table td {
+                    padding: 8px 12px;
+                    border: 1px solid #c9c9c9;
+                }
+                .summary-table tr.grand-total {
+                    background: #2c3e50;
+                    color: #ffffff;
+                    font-size: 16px;
+                }
+                .unpaid-toggle-btn {
+                    cursor: pointer;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 2px 8px;
+                    border-radius: 12px;
+                    font-size: 12px;
+                    font-weight: 600;
+                    user-select: none;
+                    transition: all 0.2s ease;
+                }
+                .unpaid-toggle-btn.is-unpaid {
+                    background-color: #ffe8cc;
+                    color: #d9480f;
+                    border: 1px solid #ffd8a8;
+                }
+                .unpaid-toggle-btn.is-paid {
+                    background-color: #e9ecef;
+                    color: #868e96;
+                    border: 1px solid #dee2e6;
+                }
+                .unpaid-dot {
+                    width: 8px;
+                    height: 8px;
+                    border-radius: 50%;
+                    display: inline-block;
+                }
+                .is-unpaid .unpaid-dot {
+                    background-color: #fd7e14;
+                }
+                .is-paid .unpaid-dot {
+                    background-color: #adb5bd;
+                }
+
+                /* Hide number input spinners / arrows */
+                input[type="number"]::-webkit-outer-spin-button,
+                input[type="number"]::-webkit-inner-spin-button {
+                    -webkit-appearance: none;
+                    margin: 0;
+                }
+                input[type="number"] {
+                    -moz-appearance: textfield;
+                    appearance: textfield;
+                }
+
+                @media print {
+                    .no-print { display: none !important; }
+                    .sheet-container { border: none; box-shadow: none; padding: 0; max-width: 100% !important; }
+                }
+            </style>
+
+            <div class="sheet-container" t-att-style="'max-width: ' + (state.containerWidthVal || '100%') + ' !important;'">
+                
+                <!-- PRODUCT ITEMS DATALIST FOR AUTOFLEX SUGGESTIONS -->
+                <datalist id="productsList">
+                    <t t-foreach="state.products || []" t-as="prod" t-key="prod.id || prod.name">
+                        <option t-att-value="prod.name"/>
+                    </t>
+                </datalist>
+
+                <!-- CUSTOMER ITEMS DATALIST FOR AUTOFLEX SUGGESTIONS -->
+                <datalist id="customersList">
+                    <t t-foreach="state.customers || []" t-as="cust" t-key="cust.id || cust.name">
+                        <option t-att-value="cust.name"/>
+                    </t>
+                </datalist>
+
+                <!-- TOP HEADER & REALTIME AUTO-SAVE CONTROLS -->
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 no-print p-2 bg-light rounded border gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <t t-if="state.saveStatus === 'saved'">
+                            <span class="badge bg-success text-white px-3 py-2 rounded-pill shadow-sm" title="All entries are permanently stored in database">
+                                <i class="fa fa-check-circle me-1"></i> Saved to Database
+                            </span>
+                        </t>
+                        <t t-elif="state.saveStatus === 'saving'">
+                            <span class="badge bg-primary text-white px-3 py-2 rounded-pill shadow-sm" title="Saving changes to database...">
+                                <i class="fa fa-spinner fa-spin me-1"></i> Saving to DB...
+                            </span>
+                        </t>
+                        <t t-else="">
+                            <span class="badge bg-warning text-dark px-3 py-2 rounded-pill shadow-sm" title="Saving changes automatically...">
+                                <i class="fa fa-pencil me-1"></i> Unsaved (Auto-saving...)
+                            </span>
+                        </t>
+                    </div>
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <!-- ADJUSTABLE CONTAINER WIDTH CONTROLS -->
+                        <div class="d-flex align-items-center gap-2 bg-white px-2 py-1 rounded border shadow-sm me-1" title="Adjust page container width">
+                            <span class="badge bg-secondary text-white small d-none d-sm-inline-block" style="font-size: 11px;">
+                                <i class="fa fa-arrows-h me-1"></i> Width: <t t-esc="state.containerWidthVal"/>
+                            </span>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" 
+                                        t-att-class="state.containerWidthVal === '100%' ? 'btn btn-primary btn-sm py-0 px-2 fw-bold' : 'btn btn-outline-secondary btn-sm py-0 px-2 btn-bg-white'" 
+                                        t-on-click="() => this.setWidthVal('100%')" 
+                                        title="100% Full Screen Width">
+                                    <i class="fa fa-expand me-1"></i> 100% Full
+                                </button>
+                                <button type="button" 
+                                        t-att-class="state.containerWidthVal === '90%' ? 'btn btn-primary btn-sm py-0 px-2 fw-bold' : 'btn btn-outline-secondary btn-sm py-0 px-2 btn-bg-white'" 
+                                        t-on-click="() => this.setWidthVal('90%')" 
+                                        title="90% Extra Wide">
+                                    90%
+                                </button>
+                                <button type="button" 
+                                        t-att-class="state.containerWidthVal === '80%' ? 'btn btn-primary btn-sm py-0 px-2 fw-bold' : 'btn btn-outline-secondary btn-sm py-0 px-2 btn-bg-white'" 
+                                        t-on-click="() => this.setWidthVal('80%')" 
+                                        title="80% Wide">
+                                    80%
+                                </button>
+                                <button type="button" 
+                                        t-att-class="state.containerWidthVal === '960px' ? 'btn btn-primary btn-sm py-0 px-2 fw-bold' : 'btn btn-outline-secondary btn-sm py-0 px-2 btn-bg-white'" 
+                                        t-on-click="() => this.setWidthVal('960px')" 
+                                        title="960px Compact Centered">
+                                    <i class="fa fa-compress me-1"></i> Compact
+                                </button>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-success fw-bold px-3 shadow-sm" t-on-click="saveSheet">
+                            <i class="fa fa-save me-1"></i> Save Sheet
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary fw-bold px-3" t-on-click="printSheet">
+                            <i class="fa fa-print me-1"></i> Print / PDF
+                        </button>
+                    </div>
+                </div>
+
+                <h1 class="sheet-title">Daily Sale Sheet</h1>
+                <div class="sheet-date-row">
+                    <input type="date" class="form-control d-inline-block w-auto border fw-bold text-center" t-model="state.date" t-on-change="(ev) => this.onDateChange(ev)"/>
+                </div>
+
+                <!-- LAST WORKING DAY BALANCE -->
+                <div class="balance-box">
+                    <span class="fs-6">Last Working Day Total Balance</span>
+                    <div class="input-group w-auto">
+                        <input type="number" class="form-control text-end fw-bold fs-6" style="width:160px;" t-model="state.lastBalance" step="any" placeholder="0"/>
+                    </div>
+                </div>
+
+                <!-- SALE TABLE -->
+                <section id="sale-section" class="mb-4">
+                    <h2 class="sheet-section-title"><i class="fa fa-shopping-cart me-2"></i>Sale</h2>
+                    <div class="table-responsive-mobile">
+                        <table class="sheet-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:4%">No</th>
+                                    <th style="width:15%">Customer</th>
+                                    <th style="width:7%">Roll Qty</th>
+                                    <th style="width:9%">Meter Qty</th>
+                                    <th>Item Name</th>
+                                    <th style="width:7%">Unit</th>
+                                    <th style="width:11%">Price per M/Y</th>
+                                    <th style="width:11%">Total Price</th>
+                                    <th style="width:14%">Note</th>
+                                    <th style="width:12%" class="text-center">Unpaid (Cash Out)</th>
+                                    <th style="width:4%" class="no-print"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="state.saleLines" t-as="line" t-key="line.id">
+                                    <tr>
+                                        <td><t t-esc="line_index + 1"/></td>
+                                        <td class="text-start" style="min-width: 160px;">
+                                            <t t-if="!line.is_custom_customer">
+                                                <select class="form-select form-select-sm border text-dark fw-bold" t-model="line.customer_name" t-on-change="(ev) => this.onCustomerSelectChange(line, ev)">
+                                                    <option value="">-- Select Customer (Khata) --</option>
+                                                    <t t-foreach="state.customers || []" t-as="c" t-key="c.id || c.name">
+                                                        <option t-att-value="c.name" t-esc="c.name"/>
+                                                    </t>
+                                                    <t t-if="line.customer_name &amp;&amp; !state.customers.some(c => c.name === line.customer_name) &amp;&amp; line.customer_name !== '__new__'">
+                                                        <option t-att-value="line.customer_name" t-esc="line.customer_name"/>
+                                                    </t>
+                                                    <option value="__new__" class="fw-bold text-primary">➕ Add New Customer (Khata)...</option>
+                                                </select>
+                                            </t>
+                                            <t t-if="line.is_custom_customer">
+                                                <div class="input-group input-group-sm">
+                                                    <input type="text" class="form-control text-start border-primary" t-model="line.customer_name" t-on-input="() => this.onCustomerInput(line)" t-on-change="() => this.onCustomerChange(line)" placeholder="Enter New Customer Name"/>
+                                                    <button class="btn btn-success py-0 px-2 fw-bold" t-on-click="() => this.saveCustomCustomer(line)" title="Save Customer">✓</button>
+                                                    <button class="btn btn-outline-secondary py-0 px-2" t-on-click="() => this.cancelCustomCustomer(line)" title="Back to list">✕</button>
+                                                </div>
+                                            </t>
+                                            <t t-set="custBal" t-value="this.getCustomerBalance(line.customer_name)"/>
+                                            <t t-if="custBal !== null">
+                                                <div class="text-primary fw-bold text-center w-100" style="font-size: 11px; margin-top: 4px;" title="Current Khata Balance">
+                                                    <i class="fa fa-info-circle me-1"></i>Net Bal: <t t-esc="custBal"/>
+                                                </div>
+                                            </t>
+                                        </td>
+                                        <td>
+                                            <input type="number" t-model="line.roll_qty" t-on-input="() => this.updateSaleRow(line)" step="any" placeholder="Roll Qty"/>
+                                            <button class="btn btn-sm btn-link p-0 no-print fw-bold text-primary text-decoration-none" style="font-size:10px;" t-on-click="() => this.openRollBreakdownModal(line)" title="Click to enter individual meters for each roll">📐 Meters</button>
+                                        </td>
+                                        <td>
+                                            <input type="number" t-model="line.qty" t-on-input="() => this.updateSaleRow(line)" step="any" placeholder="Meter Qty"/>
+                                            <t t-if="line.roll_meters_str">
+                                                <span class="d-block text-primary fw-bold" style="font-size:9px;" title="Roll breakdown">(<t t-esc="line.roll_meters_str"/> m)</span>
+                                            </t>
+                                        </td>
+                                        <td class="text-start" style="min-width: 160px;">
+                                            <t t-if="!line.is_custom_item">
+                                                <select class="form-select form-select-sm border text-dark fw-bold" t-model="line.item_name" t-on-change="(ev) => this.onItemSelectChange(line, ev)">
+                                                    <option value="">-- Select Product --</option>
+                                                    <t t-foreach="state.products || []" t-as="prod" t-key="prod.id || prod.name">
+                                                        <option t-att-value="prod.name" t-esc="prod.name"/>
+                                                    </t>
+                                                    <t t-if="line.item_name &amp;&amp; !state.products.some(p => p.name === line.item_name) &amp;&amp; line.item_name !== '__new__'">
+                                                        <option t-att-value="line.item_name" t-esc="line.item_name"/>
+                                                    </t>
+                                                    <option value="__new__" class="fw-bold text-primary">➕ Add New Product...</option>
+                                                </select>
+                                            </t>
+                                            <t t-if="line.is_custom_item">
+                                                <div class="input-group input-group-sm">
+                                                    <input type="text" class="form-control text-start border-primary" t-model="line.item_name" t-on-input="(ev) => this.onSelectItemName(line, ev)" t-on-change="(ev) => this.onItemChange(line, ev)" placeholder="Enter New Product Name"/>
+                                                    <button class="btn btn-success py-0 px-2 fw-bold" t-on-click="() => this.saveCustomItem(line)" title="Save Product">✓</button>
+                                                    <button class="btn btn-outline-secondary py-0 px-2" t-on-click="() => this.cancelCustomItem(line)" title="Back to list">✕</button>
+                                                </div>
+                                            </t>
+                                            <t t-set="prodStock" t-value="this.getProductStock(line.item_name)"/>
+                                            <t t-if="prodStock !== null">
+                                                <div class="text-primary fw-bold text-center w-100" style="font-size: 11px; margin-top: 4px;" title="Current Stock">
+                                                    <i class="fa fa-cubes me-1"></i>Stock: <t t-esc="prodStock"/>
+                                                </div>
+                                            </t>
+                                        </td>
+                                        <td>
+                                            <select t-model="line.unit">
+                                                <option value="Meter">Meter</option>
+                                                <option value="Yard">Yard</option>
+                                            </select>
+                                        </td>
+                                        <td><input type="number" t-model="line.price" t-on-input="() => this.updateSaleRow(line)" step="any" placeholder="Price"/></td>
+                                        <td><input type="number" t-model="line.total" step="any" class="fw-bold text-success" placeholder="Total"/></td>
+                                        <td><input type="text" class="text-start" t-model="line.note" t-on-input="() => this.onSaleLineChange(line)" placeholder="Note / Remarks"/></td>
+                                        <td class="text-center">
+                                            <div class="form-check form-switch d-inline-block m-0 align-middle">
+                                                <input class="form-check-input" type="checkbox" role="switch" t-model="line.is_unpaid" t-on-change="() => this.toggleUnpaidSale(line)" title="Toggle Unpaid to Sync with Cash Out"/>
+                                            </div>
+                                            <t t-if="line.is_unpaid">
+                                                <span class="badge bg-danger text-white border ms-1" style="font-size:9px;" title="Synced to Cash Out Table">UNPAID</span>
+                                            </t>
+                                        </td>
+                                        <td class="no-print">
+                                            <button class="remove-row-btn" t-on-click="() => this.removeSaleRow(line_index)" title="Remove row">✕</button>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="7" class="text-end pe-3 fw-bold">Total Sale</td>
+                                    <td class="fw-bold text-success fs-6"><t t-esc="totalSale.toFixed(2)"/></td>
+                                    <td colspan="2"></td>
+                                    <td class="no-print"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                        <div class="d-flex justify-content-between align-items-center mt-2 no-print">
+                            <button class="add-row-btn" t-on-click="addSaleRow">
+                                <i class="fa fa-plus-circle me-1"></i> + Add Sale Row
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger fw-bold" t-on-click="clearSaleTable" title="Delete all sale entries">
+                                <i class="fa fa-trash me-1"></i> Clear Sale
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- CASH IN TABLE -->
+                <section id="cashin-section" class="mb-4">
+                    <h2 class="sheet-section-title"><i class="fa fa-arrow-down me-2 text-success"></i>Cash In</h2>
+                    <div class="table-responsive-mobile">
+                        <table class="sheet-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:6%">No</th>
+                                    <th>Name / Note (Customer)</th>
+                                    <th style="width:22%">Money</th>
+                                    <th style="width:20%" class="text-center">Khata Sync</th>
+                                    <th style="width:5%" class="no-print"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="state.cashinLines" t-as="line" t-key="line.id">
+                                    <tr>
+                                        <td><t t-esc="line_index + 1"/></td>
+                                        <td class="text-start" style="min-width: 170px;">
+                                            <t t-if="!line.is_custom_customer">
+                                                <select class="form-select form-select-sm border text-dark fw-bold" t-model="line.note" t-on-change="(ev) => this.onCashinSelectChange(line, ev)">
+                                                    <option value="">-- Select Customer / Note --</option>
+                                                    <t t-foreach="state.customers || []" t-as="c" t-key="c.id || c.name">
+                                                        <option t-att-value="c.name" t-esc="c.name"/>
+                                                    </t>
+                                                    <option value="__new__" class="fw-bold text-primary">➕ Add New Customer / Note...</option>
+                                                </select>
+                                            </t>
+                                            <t t-if="line.is_custom_customer">
+                                                <div class="input-group input-group-sm">
+                                                    <input type="text" class="form-control text-start border-primary" t-model="line.note" t-on-input="() => this.onCashinInput(line)" t-on-change="() => this.onCashinChange(line)" placeholder="Enter Customer Name or Note"/>
+                                                    <button class="btn btn-success py-0 px-2 fw-bold" t-on-click="() => this.saveCustomCashinCustomer(line)" title="Save Customer">✓</button>
+                                                    <button class="btn btn-outline-secondary py-0 px-2" t-on-click="() => this.cancelCustomCashin(line)" title="Back to list">✕</button>
+                                                </div>
+                                            </t>
+                                            <t t-set="custBal" t-value="this.getCustomerBalance(line.note)"/>
+                                            <t t-if="custBal !== null">
+                                                <div class="text-primary fw-bold text-center w-100" style="font-size: 11px; margin-top: 4px;" title="Current Khata Balance">
+                                                    <i class="fa fa-info-circle me-1"></i>Net Bal: <t t-esc="custBal"/>
+                                                </div>
+                                            </t>
+                                        </td>
+                                        <td><input type="number" t-model="line.money" t-on-input="() => this.onCashinInput(line)" step="any" placeholder="Money"/></td>
+                                        <td class="text-center align-middle">
+                                            <div class="d-flex align-items-center justify-content-center gap-1">
+                                                <div class="form-check form-switch d-inline-block m-0 align-middle">
+                                                    <input class="form-check-input" type="checkbox" role="switch" t-model="line.is_khata" t-on-change="() => this.onToggleKhata(line)" title="Toggle Khata Jama (Credit Entry)"/>
+                                                </div>
+                                                <t t-if="line.is_khata">
+                                                    <span class="badge bg-success text-white border ms-1" style="font-size:10px; padding: 4px 6px;" title="Credit / Jama entry created in Customer Khata"><i class="fa fa-check-circle me-1"></i>Khata ON (Jama)</span>
+                                                </t>
+                                                <t t-else="">
+                                                    <span class="badge bg-secondary text-white opacity-50 ms-1" style="font-size:9px;" title="Khata sync off">Khata OFF</span>
+                                                </t>
+                                            </div>
+                                        </td>
+                                        <td class="no-print">
+                                            <button class="remove-row-btn" t-on-click="() => this.removeCashinRow(line_index)">✕</button>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="2" class="text-end pe-3 fw-bold">Total Cash In</td>
+                                    <td class="fw-bold text-success fs-6"><t t-esc="totalCashin.toFixed(2)"/></td>
+                                    <td colspan="2" class="no-print"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                        <div class="d-flex justify-content-between align-items-center mt-2 no-print">
+                            <button class="add-row-btn" t-on-click="addCashinRow">
+                                <i class="fa fa-plus-circle me-1"></i> + Add Cash In Row
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger fw-bold" t-on-click="clearCashinTable" title="Delete all cash in entries">
+                                <i class="fa fa-trash me-1"></i> Clear Cash In
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- CASH OUT TABLE -->
+                <section id="cashout-section" class="mb-4">
+                    <h2 class="sheet-section-title"><i class="fa fa-arrow-up me-2 text-danger"></i>Cash Out</h2>
+                    <div class="table-responsive-mobile">
+                        <table class="sheet-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:6%">No</th>
+                                    <th>Name / Note (Customer)</th>
+                                    <th style="width:22%">Money</th>
+                                    <th style="width:20%" class="text-center">Khata Sync</th>
+                                    <th style="width:5%" class="no-print"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="state.cashoutLines" t-as="line" t-key="line.id">
+                                    <tr>
+                                        <td><t t-esc="line_index + 1"/></td>
+                                        <td class="text-start" style="min-width: 170px;">
+                                            <t t-if="!line.is_custom_customer">
+                                                <select class="form-select form-select-sm border text-dark fw-bold" t-model="line.note" t-on-change="(ev) => this.onCashoutSelectChange(line, ev)">
+                                                    <option value="">-- Select Customer / Note --</option>
+                                                    <t t-foreach="state.customers || []" t-as="c" t-key="c.id || c.name">
+                                                        <option t-att-value="c.name" t-esc="c.name"/>
+                                                    </t>
+                                                    <option value="__new__" class="fw-bold text-primary">➕ Add New Customer / Note...</option>
+                                                </select>
+                                            </t>
+                                            <t t-if="line.is_custom_customer">
+                                                <div class="input-group input-group-sm">
+                                                    <t t-if="line.syncedSaleId || (line.note &amp;&amp; line.note.startsWith('Unpaid Sale:'))">
+                                                        <span class="input-group-text bg-warning text-dark fw-bold border-warning" style="font-size:10px;" title="Synced from Sale Table Unpaid">
+                                                            <i class="fa fa-shopping-cart me-1"></i>Unpaid
+                                                        </span>
+                                                    </t>
+                                                    <input type="text" class="form-control text-start border-primary" t-model="line.note" t-on-input="() => this.onCashoutInput(line)" t-on-change="() => this.onCashoutChange(line)" placeholder="Enter Customer Name or Note"/>
+                                                    <t t-if="!(line.syncedSaleId || (line.note &amp;&amp; line.note.startsWith('Unpaid Sale:')))">
+                                                        <button class="btn btn-success py-0 px-2 fw-bold" t-on-click="() => this.saveCustomCashoutCustomer(line)" title="Save Customer">✓</button>
+                                                        <button class="btn btn-outline-secondary py-0 px-2" t-on-click="() => this.cancelCustomCashout(line)" title="Back to list">✕</button>
+                                                    </t>
+                                                </div>
+                                            </t>
+                                            <t t-set="custBal" t-value="this.getCustomerBalance(line.note)"/>
+                                            <t t-if="custBal !== null">
+                                                <div class="text-primary fw-bold text-center w-100" style="font-size: 11px; margin-top: 4px;" title="Current Khata Balance">
+                                                    <i class="fa fa-info-circle me-1"></i>Net Bal: <t t-esc="custBal"/>
+                                                </div>
+                                            </t>
+                                        </td>
+                                        <td><input type="number" t-model="line.money" t-on-input="() => this.onCashoutInput(line)" step="any" placeholder="Money"/></td>
+                                        <td class="text-center align-middle">
+                                            <div class="d-flex align-items-center justify-content-center gap-1">
+                                                <div class="form-check form-switch d-inline-block m-0 align-middle">
+                                                    <input class="form-check-input" type="checkbox" role="switch" t-model="line.is_khata" t-on-change="() => this.onToggleKhata(line)" title="Toggle Khata Udhaar (Debit Entry)"/>
+                                                </div>
+                                                <t t-if="line.is_khata">
+                                                    <span class="badge bg-danger text-white border ms-1" style="font-size:10px; padding: 4px 6px;" title="Debit / Udhaar entry created in Customer Khata"><i class="fa fa-minus-circle me-1"></i>Khata ON (Udhaar)</span>
+                                                </t>
+                                                <t t-else="">
+                                                    <span class="badge bg-secondary text-white opacity-50 ms-1" style="font-size:9px;" title="Khata sync off">Khata OFF</span>
+                                                </t>
+                                            </div>
+                                        </td>
+                                        <td class="no-print">
+                                            <button class="remove-row-btn" t-on-click="() => this.removeCashoutRow(line_index)">✕</button>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="2" class="text-end pe-3 fw-bold">Total Cash Out</td>
+                                    <td class="fw-bold text-danger fs-6"><t t-esc="totalCashout.toFixed(2)"/></td>
+                                    <td colspan="2" class="no-print"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                        <div class="d-flex justify-content-between align-items-center mt-2 no-print">
+                            <button class="add-row-btn" t-on-click="addCashoutRow">
+                                <i class="fa fa-plus-circle me-1"></i> + Add Cash Out Row
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger fw-bold" t-on-click="clearCashoutTable" title="Delete all cash out entries">
+                                <i class="fa fa-trash me-1"></i> Clear Cash Out
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SHOP EXPENSE TABLE -->
+                <section id="shopexp-section" class="mb-4">
+                    <h2 class="sheet-section-title"><i class="fa fa-building me-2 text-warning"></i>Shop Expense</h2>
+                    <div class="table-responsive-mobile">
+                        <table class="sheet-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:8%">No</th>
+                                    <th>Note</th>
+                                    <th style="width:25%">Money</th>
+                                    <th style="width:6%" class="no-print"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="state.shopexpLines" t-as="line" t-key="line.id">
+                                    <tr>
+                                        <td><t t-esc="line_index + 1"/></td>
+                                        <td class="text-start"><input type="text" class="text-start" t-model="line.note" t-on-input="() => this.onShopexpInput(line)" placeholder="Expense Note"/></td>
+                                        <td><input type="number" t-model="line.money" t-on-input="() => this.onShopexpInput(line)" step="any" placeholder="Money"/></td>
+                                        <td class="no-print">
+                                            <button class="remove-row-btn" t-on-click="() => this.removeShopexpRow(line_index)">✕</button>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="2" class="text-end pe-3 fw-bold">Total Shop Expense</td>
+                                    <td class="fw-bold text-warning fs-6"><t t-esc="totalShopexp.toFixed(2)"/></td>
+                                    <td class="no-print"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                        <div class="d-flex justify-content-between align-items-center mt-2 no-print">
+                            <button class="add-row-btn" t-on-click="addShopexpRow">
+                                <i class="fa fa-plus-circle me-1"></i> + Add Shop Expense Row
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger fw-bold" t-on-click="clearShopexpTable" title="Delete all shop expense entries">
+                                <i class="fa fa-trash me-1"></i> Clear Shop Exp
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- HOME EXPENSE TABLE -->
+                <section id="homeexp-section" class="mb-4">
+                    <h2 class="sheet-section-title"><i class="fa fa-home me-2" style="color:#9333ea;"></i>Home Expense</h2>
+                    <div class="table-responsive-mobile">
+                        <table class="sheet-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:8%">No</th>
+                                    <th>Note</th>
+                                    <th style="width:25%">Money</th>
+                                    <th style="width:6%" class="no-print"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="state.homeexpLines" t-as="line" t-key="line.id">
+                                    <tr>
+                                        <td><t t-esc="line_index + 1"/></td>
+                                        <td class="text-start"><input type="text" class="text-start" t-model="line.note" t-on-input="() => this.onHomeexpInput(line)" placeholder="Home Expense Note"/></td>
+                                        <td><input type="number" t-model="line.money" t-on-input="() => this.onHomeexpInput(line)" step="any" placeholder="Money"/></td>
+                                        <td class="no-print">
+                                            <button class="remove-row-btn" t-on-click="() => this.removeHomeexpRow(line_index)">✕</button>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="2" class="text-end pe-3 fw-bold">Total Home Expense</td>
+                                    <td class="fw-bold fs-6" style="color:#9333ea;"><t t-esc="totalHomeexp.toFixed(2)"/></td>
+                                    <td class="no-print"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                        <div class="d-flex justify-content-between align-items-center mt-2 no-print">
+                            <button class="add-row-btn" t-on-click="addHomeexpRow">
+                                <i class="fa fa-plus-circle me-1"></i> + Add Home Expense Row
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger fw-bold" t-on-click="clearHomeexpTable" title="Delete all home expense entries">
+                                <i class="fa fa-trash me-1"></i> Clear Home Exp
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+
+                <!-- FINAL CALCULATION TABLE -->
+                <section id="finalcalc-section" class="mb-4">
+                    <h2 class="sheet-section-title"><i class="fa fa-calculator me-2"></i>Current Day Total Balance</h2>
+                    <table class="final-calc-table">
+                        <tr>
+                            <td>Last Working Day Total Balance</td>
+                            <td><t t-esc="formatVal(state.lastBalance)"/></td>
+                        </tr>
+                        <tr>
+                            <td>+ Sale</td>
+                            <td class="text-success"><t t-esc="totalSale.toFixed(2)"/></td>
+                        </tr>
+                        <tr>
+                            <td>+ Cash In</td>
+                            <td class="text-success"><t t-esc="totalCashin.toFixed(2)"/></td>
+                        </tr>
+                        <tr class="fw-bold table-light">
+                            <td>= Sub Total</td>
+                            <td><t t-esc="subTotal.toFixed(2)"/></td>
+                        </tr>
+                        <tr>
+                            <td class="minus-text">− Cash Out</td>
+                            <td class="minus-text"><t t-esc="totalCashout.toFixed(2)"/></td>
+                        </tr>
+                        <tr>
+                            <td class="minus-text">− Shop Expense</td>
+                            <td class="minus-text"><t t-esc="totalShopexp.toFixed(2)"/></td>
+                        </tr>
+                        <tr>
+                            <td class="minus-text">− Home Expense</td>
+                            <td class="minus-text"><t t-esc="totalHomeexp.toFixed(2)"/></td>
+                        </tr>
+                        <tr class="grand-total">
+                            <td>Current Day Total Balance</td>
+                            <td><t t-esc="currentDayBalance.toFixed(2)"/></td>
+                        </tr>
+                    </table>
+                </section>
+
+                <!-- SAVE & PRINT CONTROLS -->
+                <div class="d-flex justify-content-center gap-3 no-print mt-4 action-buttons-wrapper">
+                    <button class="btn btn-success fw-bold px-4 py-2" t-on-click="saveSheet">
+                        <i class="fa fa-save me-1"></i> Save Sheet
+                    </button>
+                    <button class="btn btn-primary fw-bold px-4 py-2" t-on-click="printSheet">
+                        <i class="fa fa-print me-1"></i> Print / Save as PDF
+                    </button>
+                    <button class="btn btn-danger fw-bold px-4 py-2" t-on-click="clearAllSheet" title="Clear all entries for the selected date">
+                        <i class="fa fa-trash me-1"></i> Clear Entire Sheet
+                    </button>
+                </div>
+
+                <!-- ROLL METERS BREAKDOWN POPUP MODAL -->
+                <t t-if="state.showRollBreakdownModal">
+                    <div class="modal d-block show" tabindex="-1" style="background: rgba(0,0,0,0.5); z-index: 1060;">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-0 shadow-lg rounded-3">
+                                <div class="modal-header bg-primary text-white">
+                                    <h5 class="modal-title fw-bold">
+                                        <i class="fa fa-calculator me-2"/> Roll Meters Breakdown
+                                    </h5>
+                                    <button type="button" class="btn-close btn-close-white" t-on-click="closeRollBreakdownModal"></button>
+                                </div>
+                                <div class="modal-body p-4">
+                                    <div class="alert alert-info py-2 px-3 small mb-3">
+                                        Enter individual meter length for each of the <strong><t t-esc="state.tempRollMeters.length"/> rolls</strong>. Total meters will be automatically calculated into Meter Qty!
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold small text-dark mb-1">Quick Expression (e.g. 50.5 + 48 + 52.2)</label>
+                                        <input type="text" class="form-control form-control-sm border-primary fw-bold" t-att-value="state.quickRollInputStr" t-on-input="(ev) => this.onQuickRollInput(ev.target.value)" placeholder="e.g. 50.5 + 48 + 52.2"/>
+                                    </div>
+
+                                    <label class="form-label fw-bold small text-dark mb-1">Individual Roll Meters</label>
+                                    <div class="mb-3 p-2 bg-light rounded border" style="max-height: 220px; overflow-y: auto;">
+                                        <t t-foreach="state.tempRollMeters" t-as="mVal" t-key="mVal_index">
+                                            <div class="d-flex align-items-center gap-2 mb-2">
+                                                <span class="fw-bold text-dark style-roll-badge" style="width: 75px; font-size:12px;">Roll #<t t-esc="mVal_index + 1"/>:</span>
+                                                <div class="input-group input-group-sm">
+                                                    <input type="number" step="any" class="form-control text-end fw-bold" t-att-value="state.tempRollMeters[mVal_index]" t-on-input="(ev) => this.updateTempRollMeter(mVal_index, ev.target.value)" placeholder="Meters (e.g. 50)"/>
+                                                    <span class="input-group-text bg-white text-muted small">m</span>
+                                                </div>
+                                                <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2" t-on-click="() => this.removeRollFromBreakdown(mVal_index)" title="Remove roll">✕</button>
+                                            </div>
+                                        </t>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center mb-3 pt-2 border-top">
+                                        <button type="button" class="btn btn-sm btn-outline-success fw-bold" t-on-click="addRollToBreakdown">
+                                            <i class="fa fa-plus me-1"/> Add Roll
+                                        </button>
+                                        <div class="text-end">
+                                            <span class="text-muted small d-block" style="font-size:11px;">TOTAL METERS</span>
+                                            <span class="fs-5 fw-bold text-primary"><t t-esc="tempRollTotalMeters"/> m</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-end gap-2 pt-2 border-top">
+                                        <button type="button" class="btn btn-secondary fw-bold px-3" t-on-click="closeRollBreakdownModal">Cancel</button>
+                                        <button type="button" class="btn btn-primary fw-bold px-4" t-on-click="applyRollBreakdown">
+                                            <i class="fa fa-check me-1"/> Apply &amp; Save
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+
+            </div>
+        </div>
+    </t>
+</templates>

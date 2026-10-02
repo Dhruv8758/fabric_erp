@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- CLIENT ACTIONS FOR CUSTOM INTERACTIVE DASHBOARD -->
+    <record id="action_fabric_dashboard" model="ir.actions.client">
+        <field name="name">Dashboard</field>
+        <field name="tag">fabric_erp.dashboard</field>
+    </record>
+
+    <!-- CUSTOMER KHATA DIRECTORY LIST VIEW (Screenshot 3) -->
+    <record id="view_fabric_customer_tree" model="ir.ui.view">
+        <field name="name">fabric.customer.tree</field>
+        <field name="model">fabric.customer</field>
+        <field name="arch" type="xml">
+            <list string="Customer Khata Accounts Directory">
+                <field name="currency_id" column_invisible="1"/>
+                <field name="code"/>
+                <field name="name" string="Customer Name &amp; Contact"/>
+                <field name="phone"/>
+
+                <field name="total_sales" string="Total Sales"/>
+                <field name="paid_amount" string="Paid Amount"/>
+                <field name="current_net_balance" string="Current Net Balance"/>
+                <field name="status" widget="badge" decoration-danger="status == 'udhaar_due'" decoration-success="status == 'clear'"/>
+                <button name="action_view_ledger" string="View Form ›" type="object" class="btn-outline-primary btn-sm"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- CUSTOMER SEARCH FILTERS -->
+    <record id="view_fabric_customer_search" model="ir.ui.view">
+        <field name="name">fabric.customer.search</field>
+        <field name="model">fabric.customer</field>
+        <field name="arch" type="xml">
+            <search string="Search Khata Customers">
+                <field name="name"/>
+                <field name="phone"/>
+
+                <filter string="Udhaar Due Only" name="filter_udhaar_due" domain="[('status', '=', 'udhaar_due')]"/>
+                <filter string="Clear Accounts" name="filter_clear" domain="[('status', '=', 'clear')]"/>
+                <group expand="0" string="Group By">
+
+                    <filter string="Status" name="group_status" context="{'group_by':'status'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- CUSTOMER KHATA INDIVIDUAL LEDGER FORM VIEW (Screenshot 4) -->
+    <record id="view_fabric_customer_form" model="ir.ui.view">
+        <field name="name">fabric.customer.form</field>
+        <field name="model">fabric.customer</field>
+        <field name="arch" type="xml">
+            <form string="Customer Khata Ledger">
+                <header>
+                    <button name="%(fabric_erp.action_fabric_dashboard)d" string="Back to Dashboard" type="action" class="btn-info" icon="fa-arrow-left"/>
+                    <button name="action_give_udhaar_dialog" string="+ Give Udhaar" type="object" class="btn-secondary"/>
+                    <button name="action_record_jama_dialog" string="+ Record Jama Payment" type="object" class="btn-primary"/>
+                    <field name="status" widget="statusbar" statusbar_visible="clear,udhaar_due"/>
+                </header>
+                <sheet>
+                    <div class="mb-3 w-100 p-0 m-0">
+                        <label for="name" string="Customer Name &amp; Store" class="fw-bold text-muted"/>
+                        <h1><field name="name" placeholder="Store Name (e.g. Surat Fabrics Store)"/></h1>
+                    </div>
+
+                    <!-- TWO COLUMN CARDS LAYOUT MATCHING SCREENSHOT 4 -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card shadow-sm border-secondary-subtle p-3 h-100 bg-light">
+                                <h5 class="fw-bold text-primary mb-3">
+                                    <i class="fa fa-user me-2"></i>CUSTOMER INFORMATION &amp; IDENTITY
+                                </h5>
+                                <table class="table table-borderless table-sm m-0">
+                                    <tr>
+                                        <td class="fw-bold text-muted" style="width:35%;">Customer ID:</td>
+                                        <td><field name="code" class="fw-bold"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold text-muted">Contact Phone:</td>
+                                        <td><field name="phone"/></td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="fw-bold text-muted">Store Address:</td>
+                                        <td><field name="store_address"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold text-muted">Last Activity Date:</td>
+                                        <td><field name="last_activity_date"/></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card shadow-sm border-secondary-subtle p-3 h-100 bg-light">
+                                <h5 class="fw-bold text-success mb-3">
+                                    <i class="fa fa-calculator me-2"></i>FINANCIAL BALANCE SUMMARY
+                                </h5>
+                                <div class="row text-center mt-2">
+                                    <div class="col-4 border-end">
+                                        <span class="text-muted small fw-bold text-uppercase d-block">TOTAL SALES</span>
+                                        <h4 class="fw-bold text-dark m-0 mt-1"><field name="total_sales"/></h4>
+                                    </div>
+                                    <div class="col-4 border-end">
+                                        <span class="text-muted small fw-bold text-uppercase d-block">PAYMENTS RECEIVED</span>
+                                        <h4 class="fw-bold text-success m-0 mt-1"><field name="paid_amount"/></h4>
+                                    </div>
+                                    <div class="col-4">
+                                        <span class="text-muted small fw-bold text-uppercase d-block">CURRENT NET BALANCE</span>
+                                        <h4 class="fw-bold text-danger m-0 mt-1"><field name="current_net_balance"/></h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- COMPLETE TRANSACTION LEDGER STATEMENT TABLE -->
+                    <div class="mt-4">
+                        <h4 class="fw-bold mb-3">
+                            <i class="fa fa-list-alt me-2 text-primary"></i>COMPLETE TRANSACTION LEDGER STATEMENT
+                        </h4>
+                        <field name="transaction_ids">
+                            <list string="Transactions" create="0">
+                                <field name="currency_id" column_invisible="1"/>
+                                <field name="display_date"/>
+                                <field name="entry_type" widget="badge" decoration-success="entry_type == 'jama'" decoration-danger="entry_type == 'udhaar'"/>
+                                <field name="particulars"/>
+                                <field name="payment_method"/>
+                                <field name="signed_amount" sum="Net Balance"/>
+                            </list>
+                        </field>
+                    </div>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- TRANSACTION WIZARD FORM VIEW -->
+    <record id="view_fabric_khata_transaction_wizard_form" model="ir.ui.view">
+        <field name="name">fabric.khata.transaction.wizard.form</field>
+        <field name="model">fabric.khata.transaction.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Record Transaction Entry">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="customer_id" readonly="1"/>
+                            <field name="entry_type" required="1"/>
+                        </group>
+                        <group>
+                            <field name="amount" required="1"/>
+                            <field name="payment_method" required="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="particulars" placeholder="e.g. Bill #DS-2026-101 Credit Udhaar balance / Cash Payment"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_save_transaction" string="Save Transaction" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- ACTIONS -->
+    <record id="action_fabric_customer" model="ir.actions.act_window">
+        <field name="name">Customer Khata Accounts Directory</field>
+        <field name="res_model">fabric.customer</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_fabric_customer_search"/>
+    </record>
+
+    <record id="action_fabric_khata_transaction" model="ir.actions.act_window">
+        <field name="name">Khata Transactions</field>
+        <field name="res_model">fabric.khata.transaction</field>
+        <field name="view_mode">list</field>
+    </record>
+</odoo>

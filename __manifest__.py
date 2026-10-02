@@ -1,0 +1,29 @@
+{
+    'name': 'Aaradhya Fabric ERP',
+    'version': '18.0.1.0.0',
+    'category': 'Textile & ERP',
+    'summary': 'Fabric Business ERP: Dashboard, Daily Sales Sheet, Customer Khata & City/Warehouse Inventory',
+    'author': 'DeepMind / Sevencore ERP',
+    'depends': ['base', 'web', 'mail'],
+    'data': [
+        'security/security.xml',
+        'security/ir.model.access.csv',
+        'views/fabric_customer_views.xml',
+        'views/fabric_product_views.xml',
+        'views/fabric_daily_sheet_views.xml',
+        'views/fabric_visit_note_views.xml',
+        'views/menu_views.xml',
+    ],
+    'assets': {
+        'web.assets_backend': [
+            'fabric_erp/static/src/css/fabric_custom.css',
+            'fabric_erp/static/src/js/fabric_dashboard.js',
+            'fabric_erp/static/src/xml/fabric_dashboard.xml',
+            'fabric_erp/static/src/js/daily_sale_sheet.js',
+            'fabric_erp/static/src/xml/daily_sale_sheet.xml',
+        ],
+    },
+    'installable': True,
+    'application': True,
+    'license': 'LGPL-3',
+}

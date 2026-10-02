@@ -1,0 +1,102 @@
+/* Custom Row Colors for Odoo Backend List Views */
+
+/* 1. Over 24 hours old -> Orange Background & Dark Orange Text */
+.o_list_renderer .o_data_row.text-warning,
+.o_list_renderer .o_data_row.text-warning > td,
+.o_list_view .o_data_row.text-warning,
+.o_list_view .o_data_row.text-warning > td,
+.o_list_view tr.text-warning,
+.o_list_view tr.text-warning > td {
+    background-color: #ffe8cc !important;
+    color: #941700 !important;
+}
+
+.o_list_renderer .o_data_row.text-warning:hover,
+.o_list_renderer .o_data_row.text-warning:hover > td,
+.o_list_view .o_data_row.text-warning:hover,
+.o_list_view .o_data_row.text-warning:hover > td,
+.o_list_view tr.text-warning:hover,
+.o_list_view tr.text-warning:hover > td {
+    background-color: #ffd8a8 !important;
+    color: #941700 !important;
+}
+
+/* 2. Credited (<24h) -> Light Green Background & Green Font */
+.o_list_renderer .o_data_row.text-success,
+.o_list_renderer .o_data_row.text-success > td,
+.o_list_view .o_data_row.text-success,
+.o_list_view .o_data_row.text-success > td,
+.o_list_view tr.text-success,
+.o_list_view tr.text-success > td {
+    background-color: #d1e7dd !important;
+    color: #198754 !important;
+    font-weight: 600 !important;
+}
+
+.o_list_renderer .o_data_row.text-success:hover,
+.o_list_renderer .o_data_row.text-success:hover > td,
+.o_list_view .o_data_row.text-success:hover,
+.o_list_view .o_data_row.text-success:hover > td,
+.o_list_view tr.text-success:hover,
+.o_list_view tr.text-success:hover > td {
+    background-color: #c1e1c1 !important;
+    color: #198754 !important;
+}
+
+/* 3. Credited AND Over 24h -> Orange Background EVEN IF Credited, with GREEN Font */
+.o_list_renderer .o_data_row.text-warning.text-success,
+.o_list_renderer .o_data_row.text-warning.text-success > td,
+.o_list_view .o_data_row.text-warning.text-success,
+.o_list_view .o_data_row.text-warning.text-success > td,
+.o_list_view tr.text-warning.text-success,
+.o_list_view tr.text-warning.text-success > td,
+.o_list_renderer .o_data_row.text-warning .text-success,
+.o_list_view .o_data_row.text-warning .text-success {
+    background-color: #ffe8cc !important;
+    color: #198754 !important;
+    font-weight: 600 !important;
+}
+
+.o_list_renderer .o_data_row.text-warning.text-success:hover,
+.o_list_renderer .o_data_row.text-warning.text-success:hover > td,
+.o_list_view .o_data_row.text-warning.text-success:hover,
+.o_list_view .o_data_row.text-warning.text-success:hover > td,
+.o_list_view tr.text-warning.text-success:hover,
+.o_list_view tr.text-warning.text-success:hover > td {
+    background-color: #ffd8a8 !important;
+    color: #198754 !important;
+}
+
+/* Aaradhya ERP - Wider Containers (Desktop Only) */
+@media (min-width: 768px) {
+    .o_action_manager > .o_view_controller {
+        width: 100% !important;
+    }
+
+    .o_form_view .o_form_sheet_bg {
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+    }
+
+    .o_form_view .o_form_sheet {
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+}
+
+/* Fix Bootstrap row overflow in Odoo sheets */
+.o_form_sheet .row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+/* Remove up/down arrows from number inputs everywhere */
+input[type="number"]::-webkit-inner-spin-button, 
+input[type="number"]::-webkit-outer-spin-button { 
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield !important;
+}

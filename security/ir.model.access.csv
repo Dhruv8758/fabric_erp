@@ -1,0 +1,13 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_fabric_customer_user,fabric.customer.user,model_fabric_customer,base.group_user,1,1,1,1
+access_fabric_khata_transaction_user,fabric.khata.transaction.user,model_fabric_khata_transaction,base.group_user,1,1,1,1
+access_fabric_khata_transaction_wizard_user,fabric.khata.transaction.wizard.user,model_fabric_khata_transaction_wizard,base.group_user,1,1,1,1
+access_fabric_daily_sheet_user,fabric.daily.sheet.user,model_fabric_daily_sheet,base.group_user,1,1,1,1
+access_fabric_daily_sale_line_user,fabric.daily.sale.line.user,model_fabric_daily_sale_line,base.group_user,1,1,1,1
+access_fabric_daily_cashin_line_user,fabric.daily.cashin.line.user,model_fabric_daily_cashin_line,base.group_user,1,1,1,1
+access_fabric_daily_cashout_line_user,fabric.daily.cashout.line.user,model_fabric_daily_cashout_line,base.group_user,1,1,1,1
+access_fabric_daily_shopexp_line_user,fabric.daily.shopexp.line.user,model_fabric_daily_shopexp_line,base.group_user,1,1,1,1
+access_fabric_daily_homeexp_line_user,fabric.daily.homeexp.line.user,model_fabric_daily_homeexp_line,base.group_user,1,1,1,1
+access_fabric_visit_note_user,fabric.visit.note.user,model_fabric_visit_note,base.group_user,1,1,1,1
+access_fabric_product_user,fabric.product.user,model_fabric_product,base.group_user,1,1,1,1
+access_fabric_product_stock_entry_user,fabric.product.stock.entry.user,model_fabric_product_stock_entry,base.group_user,1,1,1,1
