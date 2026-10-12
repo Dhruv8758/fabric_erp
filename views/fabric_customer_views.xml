@@ -53,6 +53,7 @@
             <form string="Customer Khata Ledger">
                 <header>
                     <button name="%(fabric_erp.action_fabric_dashboard)d" string="Back to Dashboard" type="action" class="btn-info" icon="fa-arrow-left"/>
+                    <button name="action_share_whatsapp" string="Share WA" type="object" class="btn-success" icon="fa-whatsapp"/>
                     <button name="action_give_udhaar_dialog" string="+ Give Udhaar" type="object" class="btn-secondary"/>
                     <button name="action_record_jama_dialog" string="+ Record Jama Payment" type="object" class="btn-primary"/>
                     <field name="status" widget="statusbar" statusbar_visible="clear,udhaar_due"/>
@@ -128,6 +129,7 @@
                                 <field name="particulars"/>
                                 <field name="payment_method"/>
                                 <field name="signed_amount" sum="Net Balance"/>
+                                <button name="action_open_transaction" type="object" icon="fa-external-link" string="Open" title="Open Transaction Details"/>
                             </list>
                         </field>
                     </div>
@@ -162,6 +164,34 @@
                     <button name="action_save_transaction" string="Save Transaction" type="object" class="btn-primary"/>
                     <button string="Cancel" class="btn-secondary" special="cancel"/>
                 </footer>
+            </form>
+        </field>
+    </record>
+
+    
+    <!-- KHATA TRANSACTION FORM VIEW -->
+    <record id="view_fabric_khata_transaction_form" model="ir.ui.view">
+        <field name="name">fabric.khata.transaction.form</field>
+        <field name="model">fabric.khata.transaction</field>
+        <field name="arch" type="xml">
+            <form string="Khata Transaction">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="customer_id" readonly="1"/>
+                            <field name="entry_type"/>
+                            <field name="date"/>
+                        </group>
+                        <group>
+                            <field name="amount"/>
+                            <field name="payment_method"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="particulars"/>
+                    </group>
+                </sheet>
+                <chatter/>
             </form>
         </field>
     </record>

@@ -11,3 +11,4 @@ access_fabric_daily_homeexp_line_user,fabric.daily.homeexp.line.user,model_fabri
 access_fabric_visit_note_user,fabric.visit.note.user,model_fabric_visit_note,base.group_user,1,1,1,1
 access_fabric_product_user,fabric.product.user,model_fabric_product,base.group_user,1,1,1,1
 access_fabric_product_stock_entry_user,fabric.product.stock.entry.user,model_fabric_product_stock_entry,base.group_user,1,1,1,1
+access_fabric_container_user,fabric.container.user,model_fabric_container,base.group_user,1,1,1,1

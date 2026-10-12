@@ -28,5 +28,65 @@
             <field name="category_id" ref="module_category_aaradhya_fabric"/>
             <field name="implied_ids" eval="[(4, ref('group_fabric_manager'))]"/>
         </record>
+        <record id="rule_fabric_customer_comp" model="ir.rule">
+            <field name="name">Fabric Customer multi-company</field>
+            <field name="model_id" ref="model_fabric_customer"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+        </record>
+        <record id="rule_fabric_khata_comp" model="ir.rule">
+            <field name="name">Khata Tx multi-company</field>
+            <field name="model_id" ref="model_fabric_khata_transaction"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+        </record>
+        <record id="rule_fabric_product_comp" model="ir.rule">
+            <field name="name">Product multi-company</field>
+            <field name="model_id" ref="model_fabric_product"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+        </record>
+        <record id="rule_fabric_container_comp" model="ir.rule">
+            <field name="name">Container multi-company</field>
+            <field name="model_id" ref="model_fabric_container"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+        </record>
+        <record id="rule_fabric_stock_entry_comp" model="ir.rule">
+            <field name="name">Stock Entry multi-company</field>
+            <field name="model_id" ref="model_fabric_product_stock_entry"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+        </record>
+        <record id="rule_fabric_daily_sheet_comp" model="ir.rule">
+            <field name="name">Daily Sheet multi-company</field>
+            <field name="model_id" ref="model_fabric_daily_sheet"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+        </record>
+        <record id="rule_fabric_sale_line_comp" model="ir.rule">
+            <field name="name">Sale Line multi-company</field>
+            <field name="model_id" ref="model_fabric_daily_sale_line"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+        </record>
+        <record id="rule_fabric_cashin_line_comp" model="ir.rule">
+            <field name="name">Cash In multi-company</field>
+            <field name="model_id" ref="model_fabric_daily_cashin_line"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+        </record>
+        <record id="rule_fabric_cashout_line_comp" model="ir.rule">
+            <field name="name">Cash Out multi-company</field>
+            <field name="model_id" ref="model_fabric_daily_cashout_line"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+        </record>
+        <record id="rule_fabric_shopexp_line_comp" model="ir.rule">
+            <field name="name">Shop Exp multi-company</field>
+            <field name="model_id" ref="model_fabric_daily_shopexp_line"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+        </record>
+        <record id="rule_fabric_homeexp_line_comp" model="ir.rule">
+            <field name="name">Home Exp multi-company</field>
+            <field name="model_id" ref="model_fabric_daily_homeexp_line"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+        </record>
+        <record id="rule_fabric_visit_note_comp" model="ir.rule">
+            <field name="name">Visit Note multi-company</field>
+            <field name="model_id" ref="model_fabric_visit_note"/>
+            <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+        </record>
     </data>
 </odoo>

@@ -12,7 +12,7 @@
         <field name="name">Product Sales Report</field>
         <field name="res_model">fabric.product.stock.entry</field>
         <field name="view_mode">list,pivot,graph</field>
-        <field name="context">{'search_default_group_product': 1, 'search_default_group_date_month': 1}</field>
+        <field name="context">{}</field>
     </record>
 
     <!-- Action Product -->
@@ -88,6 +88,7 @@
                         <field name="date"/>
                         <field name="quantity"/>
                         <field name="reference"/>
+                        <field name="container_id" placeholder="Choose a container..."/>
                     </group>
                 </sheet>
             </form>
@@ -99,12 +100,14 @@
         <field name="name">fabric.product.stock.entry.list</field>
         <field name="model">fabric.product.stock.entry</field>
         <field name="arch" type="xml">
-            <list create="false" edit="false">
-                <field name="date"/>
+            <list create="false" edit="false" decoration-info="container_id != False">
+                <field name="date" invisible="1"/>
+                <field name="date_formatted" string="Date"/>
                 <field name="product_id"/>
                 <field name="entry_type" widget="badge" decoration-success="entry_type == 'in'" decoration-danger="entry_type == 'out'"/>
                 <field name="signed_quantity" sum="Net Total"/>
                 <field name="reference"/>
+                <field name="container_id"/>
             </list>
         </field>
     </record>

@@ -5,6 +5,8 @@ class FabricDailySheet(models.Model):
     _name = 'fabric.daily.sheet'
     _inherit = ['fabric.time.limit.mixin', 'mail.thread', 'mail.activity.mixin']
     _description = 'Daily Sales Sheet'
+    company_id = fields.Many2one('res.company', string='Company', required=True, default=lambda self: self.env.company)
+
     _order = 'date desc, id desc'
     _rec_name = 'display_name'
 
@@ -51,6 +53,8 @@ class FabricDailySaleLine(models.Model):
     _name = 'fabric.daily.sale.line'
     _inherit = ['fabric.time.limit.mixin']
     _description = 'Daily Sale Line'
+    company_id = fields.Many2one('res.company', string='Company', required=True, default=lambda self: self.env.company)
+
 
     sheet_id = fields.Many2one('fabric.daily.sheet', string='Sheet Reference', ondelete='cascade')
     sequence = fields.Integer(string='No', default=1)
@@ -79,6 +83,11 @@ class FabricDailySaleLine(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        for vals in vals_list:
+            if not vals.get('product_id') and vals.get('item_name'):
+                prod = self.env['fabric.product'].sudo().search([('name', '=ilike', vals['item_name'].strip())], limit=1)
+                if prod:
+                    vals['product_id'] = prod.id
         lines = super().create(vals_list)
         for line in lines:
             if line.product_id and line.qty > 0:
@@ -93,6 +102,10 @@ class FabricDailySaleLine(models.Model):
         return lines
 
     def write(self, vals):
+        if 'item_name' in vals and 'product_id' not in vals:
+            prod = self.env['fabric.product'].sudo().search([('name', '=ilike', (vals.get('item_name') or '').strip())], limit=1)
+            if prod:
+                vals['product_id'] = prod.id
         res = super().write(vals)
         for line in self:
             if 'qty' in vals or 'product_id' in vals:
@@ -117,11 +130,31 @@ class FabricDailySaleLine(models.Model):
                     entry.unlink()
         return res
 
+    def unlink(self):
+        keep_stock = self.env.context.get('keep_stock_deducted', False)
+        for line in self:
+            stock_entries = self.env['fabric.product.stock.entry'].search([('sale_line_id', '=', line.id)])
+            product = line.product_id
+            if stock_entries:
+                if keep_stock:
+                    stock_entries.write({
+                        'sale_line_id': False,
+                        'reference': f"Stock Out (Removed Sale: {line.item_name or 'Sale'} - {line.qty} {line.unit})",
+                    })
+                else:
+                    stock_entries.unlink()
+                    if product:
+                        product._compute_quantity()
+            elif product and not keep_stock:
+                product._compute_quantity()
+        return super().unlink()
 
 class FabricDailyCashinLine(models.Model):
     _name = 'fabric.daily.cashin.line'
     _inherit = ['fabric.time.limit.mixin']
     _description = 'Daily Cash In Line'
+    company_id = fields.Many2one('res.company', string='Company', required=True, default=lambda self: self.env.company)
+
 
     sheet_id = fields.Many2one('fabric.daily.sheet', string='Sheet Reference', ondelete='cascade')
     sequence = fields.Integer(string='No', default=1)
@@ -130,12 +163,51 @@ class FabricDailyCashinLine(models.Model):
     note = fields.Char(string='Name / Note', required=True)
     money = fields.Float(string='Money', required=True)
     is_khata = fields.Boolean(string='Khata Sync (Jama)', default=False)
+    khata_transaction_id = fields.Many2one('fabric.khata.transaction', string='Khata Entry', copy=False, ondelete='cascade')
+
+    def _sync_khata(self):
+        for line in self:
+            if line.is_khata and line.customer_id and line.money > 0:
+                vals = {
+                    'customer_id': line.customer_id.id,
+                    'date': line.sheet_id.date or fields.Date.context_today(self),
+                    'entry_type': 'jama',
+                    'amount': line.money,
+                    'particulars': f"Cash In: {line.note}",
+                    'payment_method': 'cash',
+                    'company_id': line.company_id.id,
+                }
+                if line.khata_transaction_id:
+                    line.khata_transaction_id.write(vals)
+                else:
+                    line.khata_transaction_id = self.env['fabric.khata.transaction'].create(vals)
+            elif line.khata_transaction_id:
+                line.khata_transaction_id.unlink()
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        lines = super().create(vals_list)
+        lines._sync_khata()
+        return lines
+
+    def write(self, vals):
+        res = super().write(vals)
+        self._sync_khata()
+        return res
+
+    def unlink(self):
+        khata_entries = self.mapped('khata_transaction_id')
+        res = super().unlink()
+        khata_entries.unlink()
+        return res
 
 
 class FabricDailyCashoutLine(models.Model):
     _name = 'fabric.daily.cashout.line'
     _inherit = ['fabric.time.limit.mixin']
     _description = 'Daily Cash Out Line'
+    company_id = fields.Many2one('res.company', string='Company', required=True, default=lambda self: self.env.company)
+
 
     sheet_id = fields.Many2one('fabric.daily.sheet', string='Sheet Reference', ondelete='cascade')
     sequence = fields.Integer(string='No', default=1)
@@ -144,12 +216,51 @@ class FabricDailyCashoutLine(models.Model):
     note = fields.Char(string='Name / Note', required=True)
     money = fields.Float(string='Money', required=True)
     is_khata = fields.Boolean(string='Khata Sync (Udhaar)', default=False)
+    khata_transaction_id = fields.Many2one('fabric.khata.transaction', string='Khata Entry', copy=False, ondelete='cascade')
+
+    def _sync_khata(self):
+        for line in self:
+            if line.is_khata and line.customer_id and line.money > 0:
+                vals = {
+                    'customer_id': line.customer_id.id,
+                    'date': line.sheet_id.date or fields.Date.context_today(self),
+                    'entry_type': 'udhaar',
+                    'amount': line.money,
+                    'particulars': f"Cash Out: {line.note}",
+                    'payment_method': 'cash',
+                    'company_id': line.company_id.id,
+                }
+                if line.khata_transaction_id:
+                    line.khata_transaction_id.write(vals)
+                else:
+                    line.khata_transaction_id = self.env['fabric.khata.transaction'].create(vals)
+            elif line.khata_transaction_id:
+                line.khata_transaction_id.unlink()
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        lines = super().create(vals_list)
+        lines._sync_khata()
+        return lines
+
+    def write(self, vals):
+        res = super().write(vals)
+        self._sync_khata()
+        return res
+
+    def unlink(self):
+        khata_entries = self.mapped('khata_transaction_id')
+        res = super().unlink()
+        khata_entries.unlink()
+        return res
 
 
 class FabricDailyShopexpLine(models.Model):
     _name = 'fabric.daily.shopexp.line'
     _inherit = ['fabric.time.limit.mixin']
     _description = 'Daily Shop Expense Line'
+    company_id = fields.Many2one('res.company', string='Company', required=True, default=lambda self: self.env.company)
+
 
     sheet_id = fields.Many2one('fabric.daily.sheet', string='Sheet Reference', ondelete='cascade')
     sequence = fields.Integer(string='No', default=1)
@@ -161,6 +272,8 @@ class FabricDailyHomeexpLine(models.Model):
     _name = 'fabric.daily.homeexp.line'
     _inherit = ['fabric.time.limit.mixin']
     _description = 'Daily Home Expense Line'
+    company_id = fields.Many2one('res.company', string='Company', required=True, default=lambda self: self.env.company)
+
 
     sheet_id = fields.Many2one('fabric.daily.sheet', string='Sheet Reference', ondelete='cascade')
     sequence = fields.Integer(string='No', default=1)

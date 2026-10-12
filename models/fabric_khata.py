@@ -41,6 +41,19 @@ class FabricKhataTransaction(models.Model):
 
 
 
+
+
+    def action_open_transaction(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Khata Transaction',
+            'res_model': 'fabric.khata.transaction',
+            'res_id': self.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }
+
 class FabricKhataTransactionWizard(models.TransientModel):
     _name = 'fabric.khata.transaction.wizard'
     _description = 'Wizard for Quick Khata Entry'

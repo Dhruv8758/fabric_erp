@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Override web.layout to set custom favicon -->
+        <template id="fabric_erp_layout_favicon" inherit_id="web.layout" name="Custom Favicon">
+            <xpath expr="//link[@rel='shortcut icon']" position="replace">
+                <link type="image/png" rel="icon" href="/fabric_erp/static/src/img/aaradhya_logo.png?v=3"/>
+                <link type="image/png" rel="shortcut icon" href="/fabric_erp/static/src/img/aaradhya_logo.png?v=3"/>
+                <link rel="apple-touch-icon" href="/fabric_erp/static/src/img/aaradhya_logo.png?v=3"/>
+            </xpath>
+        </template>
+    </data>
+</odoo>

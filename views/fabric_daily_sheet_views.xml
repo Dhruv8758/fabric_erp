@@ -4,7 +4,8 @@
         <field name="name">fabric.daily.sheet.tree</field>
         <field name="model">fabric.daily.sheet</field>
         <field name="arch" type="xml">
-            <list string="Daily Sales Sheets">
+            <list string="Daily Sales Sheets" decoration-info="create_uid == uid">
+                <field name="create_uid" string="Creator" readonly="1" widget="many2one_avatar_user" optional="show"/>
                 <field name="date"/>
                 <field name="last_balance"/>
                 <field name="total_sale"/>
@@ -39,7 +40,8 @@
                     <notebook>
                         <page string="Sale Entries">
                             <field name="sale_line_ids">
-                                <list editable="bottom">
+                                <list editable="bottom" decoration-info="create_uid == uid">
+                                    <field name="create_uid" string="User" readonly="1" widget="many2one_avatar_user" optional="show"/>
                                     <field name="sequence"/>
                                     <field name="customer_id"/>
                                     <field name="customer_name"/>
@@ -56,7 +58,8 @@
                         </page>
                         <page string="Cash In Entries">
                             <field name="cashin_line_ids">
-                                <list editable="bottom">
+                                <list editable="bottom" decoration-info="create_uid == uid">
+                                    <field name="create_uid" string="User" readonly="1" widget="many2one_avatar_user" optional="show"/>
                                     <field name="sequence"/>
                                     <field name="customer_id"/>
                                     <field name="customer_name"/>
@@ -68,7 +71,8 @@
                         </page>
                         <page string="Cash Out Entries">
                             <field name="cashout_line_ids">
-                                <list editable="bottom">
+                                <list editable="bottom" decoration-info="create_uid == uid">
+                                    <field name="create_uid" string="User" readonly="1" widget="many2one_avatar_user" optional="show"/>
                                     <field name="sequence"/>
                                     <field name="customer_id"/>
                                     <field name="customer_name"/>
@@ -80,7 +84,8 @@
                         </page>
                         <page string="Shop Expenses">
                             <field name="shopexp_line_ids">
-                                <list editable="bottom">
+                                <list editable="bottom" decoration-info="create_uid == uid">
+                                    <field name="create_uid" string="User" readonly="1" widget="many2one_avatar_user" optional="show"/>
                                     <field name="sequence"/>
                                     <field name="note"/>
                                     <field name="money"/>
@@ -89,7 +94,8 @@
                         </page>
                         <page string="Home Expenses">
                             <field name="homeexp_line_ids">
-                                <list editable="bottom">
+                                <list editable="bottom" decoration-info="create_uid == uid">
+                                    <field name="create_uid" string="User" readonly="1" widget="many2one_avatar_user" optional="show"/>
                                     <field name="sequence"/>
                                     <field name="note"/>
                                     <field name="money"/>

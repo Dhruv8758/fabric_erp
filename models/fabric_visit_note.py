@@ -4,6 +4,8 @@ class FabricVisitNote(models.Model):
     _name = 'fabric.visit.note'
     _inherit = ['fabric.time.limit.mixin', 'mail.thread', 'mail.activity.mixin']
     _description = 'Customer Shop Visit Quick Note'
+    company_id = fields.Many2one('res.company', string='Company', required=True, default=lambda self: self.env.company)
+
     _order = 'date desc, id desc'
 
     date = fields.Datetime(string='Date & Time', default=fields.Datetime.now, required=True, tracking=True)

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="fabric_erp.NavBar" t-inherit="web.NavBar" t-inherit-mode="extension" owl="1">
+        <xpath expr="//DropdownItem[hasclass('o_menu_brand')]" position="before">
+            <div class="d-flex align-items-center ms-2 pe-2 me-1">
+                <img src="/fabric_erp/static/src/img/aaradhya_logo.png" style="height: 35px; width: 35px; object-fit: contain; border-radius: 50%;" alt="Aaradhya Logo" class="shadow-sm"/>
+            </div>
+        </xpath>
+    </t>
+</templates>

@@ -5,6 +5,8 @@ import { registry } from "@web/core/registry";
 import { rpc } from "@web/core/network/rpc";
 import { useService } from "@web/core/utils/hooks";
 
+let globalLastSelectedDate = null;
+
 export class DailySaleSheetComponent extends Component {
     static template = "fabric_erp.DailySaleSheetComponent";
 
@@ -15,7 +17,7 @@ export class DailySaleSheetComponent extends Component {
         const today = new Date().toISOString().split('T')[0];
         const savedWidth = localStorage.getItem('fabric_sheet_width_val') || '100%';
         this.state = useState({
-            date: today,
+            date: globalLastSelectedDate || today,
             lastBalance: '',
             saveStatus: 'saved', // 'saved' | 'saving' | 'unsaved'
             containerWidthVal: savedWidth, // '100%', '95%', '90%', '80%', '960px'
@@ -128,6 +130,7 @@ export class DailySaleSheetComponent extends Component {
             const data = await rpc("/fabric_erp/get_daily_sheet_by_date", { date_str: dateStr });
             const cleanZero = (val) => (val === 0 || val === '0' || val === 0.0 || !val) ? '' : val;
             if (data && data.exists) {
+                this.state.current_uid = data.current_uid;
                 this.state.lastBalance = cleanZero(data.last_balance);
                 this.state.saleLines = (data.saleLines || []).map(l => ({
                     ...l,
@@ -182,10 +185,10 @@ export class DailySaleSheetComponent extends Component {
                 mergeCustName(line.customer_name);
             }
             for (const line of this.state.cashinLines) {
-                mergeCustName(line.customer_name || line.note);
+                mergeCustName(line.customer_name);
             }
             for (const line of this.state.cashoutLines) {
-                mergeCustName(line.customer_name || line.note);
+                mergeCustName(line.customer_name);
             }
 
             // Link loaded unpaid sale lines with matching cashout entries
@@ -260,6 +263,7 @@ export class DailySaleSheetComponent extends Component {
 
     async onDateChange(ev) {
         this.state.date = ev.target.value;
+        globalLastSelectedDate = this.state.date;
         await this.loadSheetByDate(this.state.date);
     }
 
@@ -396,7 +400,8 @@ export class DailySaleSheetComponent extends Component {
                 !c.syncedSaleId && 
                 c.note && 
                 c.note.startsWith('Unpaid Sale:') && 
-                (c.customer_name === custName || c.note.includes(`Customer: ${custName}`))
+                (c.customer_name === custName || c.note.includes(`Customer: ${custName}`)) &&
+                c.money === totalMoney
             );
         }
 
@@ -426,20 +431,10 @@ export class DailySaleSheetComponent extends Component {
                 }
             }
         } else {
-            let idx = this.state.cashoutLines.findIndex(c => 
-                c.syncedSaleId === line.id || 
-                (c.note && c.note.startsWith('Unpaid Sale:') && (
-                    (custName && (c.customer_name === custName || c.note.includes(`Customer: ${custName}`)))
-                ))
-            );
-            while (idx !== -1) {
+            // Strictly match only the syncedSaleId to prevent accidentally deleting other unpaid entries for the same customer
+            let idx = this.state.cashoutLines.findIndex(c => c.syncedSaleId === line.id);
+            if (idx !== -1) {
                 this.state.cashoutLines.splice(idx, 1);
-                idx = this.state.cashoutLines.findIndex(c => 
-                    c.syncedSaleId === line.id || 
-                    (c.note && c.note.startsWith('Unpaid Sale:') && (
-                        (custName && (c.customer_name === custName || c.note.includes(`Customer: ${custName}`)))
-                    ))
-                );
             }
         }
         this.ensureEmptyLines();
@@ -642,17 +637,59 @@ export class DailySaleSheetComponent extends Component {
         });
     }
 
-    removeSaleRow(idx) {
-        if (this.state.saleLines.length > 1) {
-            const removed = this.state.saleLines.splice(idx, 1)[0];
-            if (removed && removed.id) {
-                const cIdx = this.state.cashoutLines.findIndex(c => c.syncedSaleId === removed.id);
-                if (cIdx !== -1) {
-                    this.state.cashoutLines.splice(cIdx, 1);
-                }
+    async removeSaleRow(idx) {
+        const line = this.state.saleLines[idx];
+        if (!line) return;
+
+        const qty = parseFloat(line.qty) || 0;
+        const itemName = (line.item_name || '').trim();
+        const unit = line.unit || 'Meter';
+
+        // Remove row from state immediately
+        const removed = this.state.saleLines.splice(idx, 1)[0];
+        this.ensureEmptyLines();
+
+        if (removed && removed.id) {
+            const cIdx = this.state.cashoutLines.findIndex(c => c.syncedSaleId === removed.id);
+            if (cIdx !== -1) {
+                this.state.cashoutLines.splice(cIdx, 1);
+                this.ensureEmptyLines();
             }
-            this.triggerAutoSave();
         }
+
+        // Instantly increase stock for this product in frontend state so UI updates immediately
+        if (itemName && qty > 0) {
+            const prod = (this.state.products || []).find(p => (p.name || '').toLowerCase() === itemName.toLowerCase());
+            if (prod && prod.quantity !== undefined) {
+                prod.quantity = (parseFloat(prod.quantity) || 0) + qty;
+            }
+        }
+
+        // Call backend to delete sale line and increase stock in database
+        const isDbId = removed && removed.id && typeof removed.id === 'number' && Number.isInteger(removed.id);
+        if (isDbId) {
+            try {
+                const res = await rpc("/fabric_erp/delete_sale_line", {
+                    line_id: removed.id,
+                    increase_stock: true,
+                });
+                if (res && res.products) {
+                    this.state.products = res.products;
+                }
+                if (this.notification && itemName && qty > 0) {
+                    this.notification.add(`Deleted row. Stock for "${itemName}" increased by +${qty} ${unit} in inventory.`, { type: "success" });
+                }
+            } catch (e) {
+                console.error("Error deleting sale line via RPC:", e);
+                this.triggerAutoSave();
+            }
+        } else {
+            if (this.notification && itemName && qty > 0) {
+                this.notification.add(`Deleted row for "${itemName}".`, { type: "info" });
+            }
+        }
+
+        this.triggerAutoSave();
     }
 
     updateSaleRow(line) {
@@ -687,7 +724,7 @@ export class DailySaleSheetComponent extends Component {
     }
 
     onCashinChange(line) {
-        const val = (line.note || line.customer_name || '').trim();
+        const val = (line.customer_name || '').trim();
         if (val && !this.state.customers.some(c => (c.name || '').toLowerCase() === val.toLowerCase())) {
             this.state.customers.push({ id: Date.now() + Math.random(), name: val });
         }
@@ -710,7 +747,7 @@ export class DailySaleSheetComponent extends Component {
     }
 
     onCashoutChange(line) {
-        const val = (line.note || line.customer_name || '').trim();
+        const val = (line.customer_name || '').trim();
         if (val && !this.state.customers.some(c => (c.name || '').toLowerCase() === val.toLowerCase())) {
             this.state.customers.push({ id: Date.now() + Math.random(), name: val });
         }
@@ -774,8 +811,12 @@ export class DailySaleSheetComponent extends Component {
         try {
             const res = await rpc("/fabric_erp/create_customer", { name: val });
             if (res && res.status === 'success') {
-                if (!this.state.customers.some(c => c.id === res.id)) {
+                const existing = this.state.customers.find(c => (c.name || '').toLowerCase() === res.name.toLowerCase());
+                if (!existing) {
                     this.state.customers.push({ id: res.id, name: res.name });
+                } else {
+                    existing.id = res.id;
+                    existing.name = res.name;
                 }
                 line.customer_name = res.name;
                 line.is_custom_customer = false;
@@ -796,21 +837,21 @@ export class DailySaleSheetComponent extends Component {
         const val = ev ? ev.target.value : '';
         if (val === '__new__') {
             line.is_custom_customer = true;
-            line.note = '';
+            line.customer_name = '';
         } else {
             line.is_custom_customer = false;
-            line.note = val;
+            line.customer_name = val;
             this.onCashinInput(line);
         }
     }
 
     cancelCustomCashin(line) {
         line.is_custom_customer = false;
-        line.note = '';
+        line.customer_name = '';
     }
 
     async saveCustomCashinCustomer(line) {
-        const val = (line.note || '').trim();
+        const val = (line.customer_name || '').trim();
         if (!val) {
             this.cancelCustomCashin(line);
             return;
@@ -818,10 +859,14 @@ export class DailySaleSheetComponent extends Component {
         try {
             const res = await rpc("/fabric_erp/create_customer", { name: val });
             if (res && res.status === 'success') {
-                if (!this.state.customers.some(c => c.id === res.id)) {
+                const existing = this.state.customers.find(c => (c.name || '').toLowerCase() === res.name.toLowerCase());
+                if (!existing) {
                     this.state.customers.push({ id: res.id, name: res.name });
+                } else {
+                    existing.id = res.id;
+                    existing.name = res.name;
                 }
-                line.note = res.name;
+                line.customer_name = res.name;
                 line.is_custom_customer = false;
                 this.onCashinInput(line);
                 if (this.notification) {
@@ -840,21 +885,21 @@ export class DailySaleSheetComponent extends Component {
         const val = ev ? ev.target.value : '';
         if (val === '__new__') {
             line.is_custom_customer = true;
-            line.note = '';
+            line.customer_name = '';
         } else {
             line.is_custom_customer = false;
-            line.note = val;
+            line.customer_name = val;
             this.onCashoutInput(line);
         }
     }
 
     cancelCustomCashout(line) {
         line.is_custom_customer = false;
-        line.note = '';
+        line.customer_name = '';
     }
 
     async saveCustomCashoutCustomer(line) {
-        const val = (line.note || '').trim();
+        const val = (line.customer_name || '').trim();
         if (!val) {
             this.cancelCustomCashout(line);
             return;
@@ -862,10 +907,14 @@ export class DailySaleSheetComponent extends Component {
         try {
             const res = await rpc("/fabric_erp/create_customer", { name: val });
             if (res && res.status === 'success') {
-                if (!this.state.customers.some(c => c.id === res.id)) {
+                const existing = this.state.customers.find(c => (c.name || '').toLowerCase() === res.name.toLowerCase());
+                if (!existing) {
                     this.state.customers.push({ id: res.id, name: res.name });
+                } else {
+                    existing.id = res.id;
+                    existing.name = res.name;
                 }
-                line.note = res.name;
+                line.customer_name = res.name;
                 line.is_custom_customer = false;
                 this.onCashoutInput(line);
                 if (this.notification) {
@@ -908,8 +957,12 @@ export class DailySaleSheetComponent extends Component {
         try {
             const res = await rpc("/fabric_erp/create_product", { name: val, unit: line.unit || 'Meter', price: parseFloat(line.price) || 0.0 });
             if (res && res.status === 'success') {
-                if (!this.state.products.some(i => i.id === res.id)) {
+                const existing = this.state.products.find(i => (i.name || '').toLowerCase() === res.name.toLowerCase());
+                if (!existing) {
                     this.state.products.push({ id: res.id, name: res.name, unit: res.unit, price_per_unit: res.price_per_unit, quantity: 0 });
+                } else {
+                    existing.id = res.id;
+                    existing.name = res.name;
                 }
                 line.item_name = res.name;
                 if (res.unit) {
@@ -958,7 +1011,7 @@ export class DailySaleSheetComponent extends Component {
         this.isSaving = true;
         this.state.saveStatus = 'saving';
         try {
-            await rpc("/fabric_erp/save_daily_sheet", {
+            const res = await rpc("/fabric_erp/save_daily_sheet", {
                 date_str: this.state.date,
                 last_balance: this.state.lastBalance,
                 sale_lines: this.state.saleLines,
@@ -968,6 +1021,16 @@ export class DailySaleSheetComponent extends Component {
                 homeexp_lines: this.state.homeexpLines,
                 is_silent: true,
             });
+            if (res && res.sale_lines_data) {
+                res.sale_lines_data.forEach((sData, idx) => {
+                    if (this.state.saleLines[idx] && sData.id) {
+                        this.state.saleLines[idx].id = sData.id;
+                    }
+                });
+            }
+            if (res && res.products && res.products.length) {
+                this.state.products = res.products;
+            }
             this.state.saveStatus = 'saved';
         } catch (e) {
             console.error("Auto-save failed", e);
@@ -985,13 +1048,96 @@ export class DailySaleSheetComponent extends Component {
         window.print();
     }
 
+    async shareToWhatsApp() {
+        if (!window.html2pdf) {
+            if (this.notification) {
+                this.notification.add("Loading PDF generator...", { type: "info" });
+            }
+            try {
+                await new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+                    script.onload = resolve;
+                    script.onerror = reject;
+                    document.head.appendChild(script);
+                });
+            } catch (e) {
+                console.error("Failed to load html2pdf", e);
+                if (this.notification) this.notification.add("Failed to load PDF generator. Using Print dialog instead.", { type: "warning" });
+                window.print();
+                return;
+            }
+        }
+
+        const element = document.querySelector('.sheet-container');
+        
+        const noPrintElements = element.querySelectorAll('.no-print');
+        noPrintElements.forEach(el => el.style.display = 'none');
+
+        const opt = {
+            margin:       0.2,
+            filename:     `Daily_Sale_Sheet_${this.state.date}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+
+        if (this.notification) {
+            this.notification.add("Generating PDF for WhatsApp...", { type: "info" });
+        }
+
+        const triggerFallback = (pdfBlob, filename) => {
+            const url = URL.createObjectURL(pdfBlob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            if (this.notification) {
+                this.notification.add("PDF Downloaded! Please attach it in WhatsApp manually.", { type: "success" });
+            }
+            const msg = `Please find the daily sale sheet for ${this.state.date} attached as a PDF.`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+        };
+
+        html2pdf().set(opt).from(element).outputPdf('blob').then((pdfBlob) => {
+            noPrintElements.forEach(el => el.style.display = '');
+
+            const file = new File([pdfBlob], opt.filename, { type: 'application/pdf' });
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            if (isMobile && navigator.canShare && navigator.canShare({ files: [file] })) {
+                navigator.share({
+                    title: `Daily Sale Sheet ${this.state.date}`,
+                    text: `Here is the daily sale sheet for ${this.state.date}.`,
+                    files: [file]
+                }).catch(err => {
+                    console.log('Error sharing:', err);
+                    triggerFallback(pdfBlob, opt.filename);
+                });
+            } else {
+                triggerFallback(pdfBlob, opt.filename);
+            }
+        }).catch(err => {
+            noPrintElements.forEach(el => el.style.display = '');
+            console.error("PDF generation failed", err);
+            if (this.notification) {
+                this.notification.add("Failed to generate PDF. Using Print instead.", { type: "danger" });
+            }
+            window.print();
+        });
+    }
+
     async saveSheet() {
         if (this.autoSaveTimer) {
             clearTimeout(this.autoSaveTimer);
         }
         this.state.saveStatus = 'saving';
         try {
-            await rpc("/fabric_erp/save_daily_sheet", {
+            const res = await rpc("/fabric_erp/save_daily_sheet", {
                 date_str: this.state.date,
                 last_balance: this.state.lastBalance,
                 sale_lines: this.state.saleLines,
@@ -1001,6 +1147,13 @@ export class DailySaleSheetComponent extends Component {
                 homeexp_lines: this.state.homeexpLines,
                 is_silent: false,
             });
+            if (res && res.sale_lines_data) {
+                res.sale_lines_data.forEach((sData, idx) => {
+                    if (this.state.saleLines[idx] && sData.id) {
+                        this.state.saleLines[idx].id = sData.id;
+                    }
+                });
+            }
             const resCust = await rpc("/fabric_erp/get_customers");
             if (resCust && resCust.length) {
                 this.state.customers = resCust;

@@ -331,6 +331,7 @@ class FabricErpController(http.Controller):
         return {
             'exists': True,
             'sheet_id': sheet.id,
+            'current_uid': request.env.user.id,
             'last_balance': sheet_last_bal,
             'create_user': create_user,
             'create_time': create_time,
@@ -349,31 +350,41 @@ class FabricErpController(http.Controller):
                 'total': l.total_price,
                 'note': l.note or '',
                 'roll_meters_str': l.roll_meters_str or '',
-                'is_unpaid': l.is_unpaid or False
+                'is_unpaid': l.is_unpaid or False,
+                'create_uid': l.create_uid.id if l.create_uid else False,
+                'create_uid_name': l.create_uid.name if l.create_uid else 'System'
             } for l in sheet.sale_line_ids],
             'cashinLines': [{
                 'id': l.id,
                 'customer_name': l.customer_name or '',
                 'note': l.note,
                 'money': l.money,
-                'is_khata': l.is_khata or False
+                'is_khata': l.is_khata or False,
+                'create_uid': l.create_uid.id if l.create_uid else False,
+                'create_uid_name': l.create_uid.name if l.create_uid else 'System'
             } for l in sheet.cashin_line_ids],
             'cashoutLines': [{
                 'id': l.id,
                 'customer_name': l.customer_name or '',
                 'note': l.note,
                 'money': l.money,
-                'is_khata': l.is_khata or False
+                'is_khata': l.is_khata or False,
+                'create_uid': l.create_uid.id if l.create_uid else False,
+                'create_uid_name': l.create_uid.name if l.create_uid else 'System'
             } for l in sheet.cashout_line_ids],
             'shopexpLines': [{
                 'id': l.id,
                 'note': l.note,
-                'money': l.money
+                'money': l.money,
+                'create_uid': l.create_uid.id if l.create_uid else False,
+                'create_uid_name': l.create_uid.name if l.create_uid else 'System'
             } for l in sheet.shopexp_line_ids],
             'homeexpLines': [{
                 'id': l.id,
                 'note': l.note,
-                'money': l.money
+                'money': l.money,
+                'create_uid': l.create_uid.id if l.create_uid else False,
+                'create_uid_name': l.create_uid.name if l.create_uid else 'System'
             } for l in sheet.homeexp_line_ids],
         }
 
@@ -391,10 +402,10 @@ class FabricErpController(http.Controller):
 
         sheet_model = request.env['fabric.daily.sheet'].sudo()
         cust_model = request.env['fabric.customer'].sudo()
-        khata_tx_model = request.env['fabric.khata.transaction'].sudo()
-
+        
         sheet = sheet_model.search([('date', '=', date_str)], limit=1)
 
+        existing_sale_ids = sheet.sale_line_ids.ids if sheet else []
         processed_sale_lines = []
         for l in sale_lines:
             c_name = (l.get('customer_name') or '').strip()
@@ -415,9 +426,7 @@ class FabricErpController(http.Controller):
             if c_name:
                 cust_rec = cust_model.search([('name', '=ilike', c_name)], limit=1)
                 if not cust_rec and not is_silent:
-                    cust_rec = cust_model.create({
-                        'name': c_name,
-                    })
+                    cust_rec = cust_model.create({'name': c_name})
                     
             prod_rec = False
             if i_name:
@@ -425,7 +434,7 @@ class FabricErpController(http.Controller):
                 if not prod_rec and not is_silent:
                     prod_rec = request.env['fabric.product'].sudo().create({'name': i_name, 'unit': unit, 'price_per_unit': price})
 
-            processed_sale_lines.append((0, 0, {
+            vals = {
                 'customer_id': cust_rec.id if cust_rec else False,
                 'customer_name': c_name,
                 'product_id': prod_rec.id if prod_rec else False,
@@ -438,21 +447,20 @@ class FabricErpController(http.Controller):
                 'note': note,
                 'roll_meters_str': roll_str,
                 'is_unpaid': is_unpaid
-            }))
+            }
+            line_id = l.get('id')
+            if line_id and line_id in existing_sale_ids:
+                processed_sale_lines.append((1, line_id, vals))
+                existing_sale_ids.remove(line_id)
+            else:
+                processed_sale_lines.append((0, 0, vals))
+        
+        for rem_id in existing_sale_ids:
+            processed_sale_lines.append((2, rem_id, 0))
 
-        display_date_str = date_str
-        try:
-            d_obj = datetime.strptime(str(date_str), '%Y-%m-%d')
-            display_date_str = d_obj.strftime('%d-%b-%Y')
-        except:
-            pass
-
-        # Search existing Khata transactions
-        existing_sheet_txs = khata_tx_model.search(['|', ('particulars', '=like', f'Daily Sheet % ({date_str})%'), ('particulars', '=like', f'Daily Sheet % ({display_date_str})%')])
-        updated_tx_ids = set()
-
+        existing_cashin_ids = sheet.cashin_line_ids.ids if sheet else []
         processed_cashin_lines = []
-        for idx, l in enumerate(cashin_lines):
+        for l in cashin_lines:
             note_val = (l.get('note') or '').strip()
             c_name = (l.get('customer_name') or '').strip()
             money_val = safe_float(l.get('money'))
@@ -461,55 +469,34 @@ class FabricErpController(http.Controller):
             if not note_val and not c_name and money_val == 0:
                 continue
 
-            target_cust_name = c_name or note_val
+            target_cust_name = c_name
             cust_rec = False
             if target_cust_name:
                 cust_rec = cust_model.search([('name', '=ilike', target_cust_name)], limit=1)
                 if not cust_rec and (is_khata or c_name) and not is_silent:
                     cust_rec = cust_model.create({'name': target_cust_name})
 
-            if is_khata and cust_rec and money_val > 0:
-                particulars_str = f"Daily Sheet Cash In ({display_date_str}) #{idx+1}: {note_val or target_cust_name}"
-                existing_tx = khata_tx_model.search([
-                    ('customer_id', '=', cust_rec.id),
-                    ('entry_type', '=', 'jama'),
-                    ('particulars', 'in', [f'Daily Sheet Cash In ({date_str}) #{idx+1}: {note_val or target_cust_name}', f'Daily Sheet Cash In ({display_date_str}) #{idx+1}: {note_val or target_cust_name}'])
-                ], limit=1)
-                if not existing_tx:
-                    existing_tx = khata_tx_model.search([
-                        ('customer_id', '=', cust_rec.id),
-                        ('entry_type', '=', 'jama'),
-                        ('particulars', 'in', [f'Daily Sheet Cash In ({date_str}): {note_val or target_cust_name}', f'Daily Sheet Cash In ({display_date_str}): {note_val or target_cust_name}'])
-                    ], limit=1)
-
-                if existing_tx:
-                    existing_tx.write({
-                        'customer_id': cust_rec.id,
-                        'particulars': particulars_str,
-                        'amount': money_val,
-                        'payment_method': 'cash'
-                    })
-                    updated_tx_ids.add(existing_tx.id)
-                else:
-                    new_tx = khata_tx_model.create({
-                        'customer_id': cust_rec.id,
-                        'entry_type': 'jama',
-                        'particulars': particulars_str,
-                        'payment_method': 'cash',
-                        'amount': money_val
-                    })
-                    updated_tx_ids.add(new_tx.id)
-
-            processed_cashin_lines.append((0, 0, {
+            vals = {
                 'customer_id': cust_rec.id if cust_rec else False,
-                'customer_name': c_name or (target_cust_name if is_khata else ''),
-                'note': note_val or target_cust_name or '(Draft)',
+                'customer_name': target_cust_name,
+                'note': note_val or '(Draft)',
                 'money': money_val,
                 'is_khata': is_khata
-            }))
+            }
+            line_id = l.get('id')
+            if line_id and line_id in existing_cashin_ids:
+                processed_cashin_lines.append((1, line_id, vals))
+                existing_cashin_ids.remove(line_id)
+            else:
+                processed_cashin_lines.append((0, 0, vals))
+                
+        for rem_id in existing_cashin_ids:
+            processed_cashin_lines.append((2, rem_id, 0))
 
+
+        existing_cashout_ids = sheet.cashout_line_ids.ids if sheet else []
         processed_cashout_lines = []
-        for idx, l in enumerate(cashout_lines):
+        for l in cashout_lines:
             note_val = (l.get('note') or '').strip()
             c_name = (l.get('customer_name') or '').strip()
             money_val = safe_float(l.get('money'))
@@ -518,15 +505,7 @@ class FabricErpController(http.Controller):
             if not note_val and not c_name and money_val == 0:
                 continue
 
-            target_cust_name = c_name or note_val
-            if not c_name and "Customer:" in target_cust_name:
-                try:
-                    extracted = target_cust_name.split("Customer:")[1].split("|")[0].strip()
-                    if extracted:
-                        c_name = extracted
-                except Exception:
-                    pass
-            target_cust_name = c_name or target_cust_name
+            target_cust_name = c_name
 
             cust_rec = False
             if target_cust_name:
@@ -534,81 +513,75 @@ class FabricErpController(http.Controller):
                 if not cust_rec and (is_khata or c_name) and not is_silent:
                     cust_rec = cust_model.create({'name': target_cust_name})
 
-            if is_khata and cust_rec and money_val > 0:
-                particulars_str = f"Daily Sheet Cash Out ({display_date_str}) #{idx+1}: {note_val or target_cust_name}"
-                existing_tx = khata_tx_model.search([
-                    ('customer_id', '=', cust_rec.id),
-                    ('entry_type', '=', 'udhaar'),
-                    ('particulars', 'in', [f'Daily Sheet Cash Out ({date_str}) #{idx+1}: {note_val or target_cust_name}', f'Daily Sheet Cash Out ({display_date_str}) #{idx+1}: {note_val or target_cust_name}'])
-                ], limit=1)
-                if not existing_tx:
-                    existing_tx = khata_tx_model.search([
-                        ('customer_id', '=', cust_rec.id),
-                        ('entry_type', '=', 'udhaar'),
-                        ('particulars', 'in', [f'Daily Sheet Cash Out ({date_str}): {note_val or target_cust_name}', f'Daily Sheet Cash Out ({display_date_str}): {note_val or target_cust_name}'])
-                    ], limit=1)
-
-                if existing_tx:
-                    existing_tx.write({
-                        'customer_id': cust_rec.id,
-                        'particulars': particulars_str,
-                        'amount': money_val,
-                        'payment_method': 'cash'
-                    })
-                    updated_tx_ids.add(existing_tx.id)
-                else:
-                    new_tx = khata_tx_model.create({
-                        'customer_id': cust_rec.id,
-                        'entry_type': 'udhaar',
-                        'particulars': particulars_str,
-                        'payment_method': 'cash',
-                        'amount': money_val
-                    })
-                    updated_tx_ids.add(new_tx.id)
-
-            processed_cashout_lines.append((0, 0, {
+            vals = {
                 'customer_id': cust_rec.id if cust_rec else False,
-                'customer_name': c_name or (target_cust_name if is_khata else ''),
-                'note': note_val or target_cust_name or '(Draft)',
+                'customer_name': target_cust_name,
+                'note': note_val or '(Draft)',
                 'money': money_val,
                 'is_khata': is_khata
-            }))
+            }
+            line_id = l.get('id')
+            if line_id and line_id in existing_cashout_ids:
+                processed_cashout_lines.append((1, line_id, vals))
+                existing_cashout_ids.remove(line_id)
+            else:
+                processed_cashout_lines.append((0, 0, vals))
+                
+        for rem_id in existing_cashout_ids:
+            processed_cashout_lines.append((2, rem_id, 0))
 
-        # Unlink transactions from this date that were deleted from daily sheet lines
-        for tx in existing_sheet_txs:
-            if tx.id not in updated_tx_ids:
-                tx.unlink()
 
+        existing_shopexp_ids = sheet.shopexp_line_ids.ids if sheet else []
         shopexp_lines_processed = []
         for l in shopexp_lines:
             n_val = (l.get('note') or '').strip()
             m_val = safe_float(l.get('money'))
             if not n_val and m_val == 0:
                 continue
-            shopexp_lines_processed.append((0, 0, {
+            vals = {
                 'note': n_val or '(Draft)',
                 'money': m_val
-            }))
+            }
+            line_id = l.get('id')
+            if line_id and line_id in existing_shopexp_ids:
+                shopexp_lines_processed.append((1, line_id, vals))
+                existing_shopexp_ids.remove(line_id)
+            else:
+                shopexp_lines_processed.append((0, 0, vals))
+                
+        for rem_id in existing_shopexp_ids:
+            shopexp_lines_processed.append((2, rem_id, 0))
 
+
+        existing_homeexp_ids = sheet.homeexp_line_ids.ids if sheet else []
         homeexp_lines_processed = []
         for l in homeexp_lines:
             n_val = (l.get('note') or '').strip()
             m_val = safe_float(l.get('money'))
             if not n_val and m_val == 0:
                 continue
-            homeexp_lines_processed.append((0, 0, {
+            vals = {
                 'note': n_val or '(Draft)',
                 'money': m_val
-            }))
+            }
+            line_id = l.get('id')
+            if line_id and line_id in existing_homeexp_ids:
+                homeexp_lines_processed.append((1, line_id, vals))
+                existing_homeexp_ids.remove(line_id)
+            else:
+                homeexp_lines_processed.append((0, 0, vals))
+                
+        for rem_id in existing_homeexp_ids:
+            homeexp_lines_processed.append((2, rem_id, 0))
 
         vals = {
             'date': date_str,
             'last_balance': safe_float(last_balance),
-            'sale_line_ids': [(5, 0, 0)] + processed_sale_lines,
-            'cashin_line_ids': [(5, 0, 0)] + processed_cashin_lines,
-            'cashout_line_ids': [(5, 0, 0)] + processed_cashout_lines,
-            'shopexp_line_ids': [(5, 0, 0)] + shopexp_lines_processed,
-            'homeexp_line_ids': [(5, 0, 0)] + homeexp_lines_processed,
+            'sale_line_ids': processed_sale_lines,
+            'cashin_line_ids': processed_cashin_lines,
+            'cashout_line_ids': processed_cashout_lines,
+            'shopexp_line_ids': shopexp_lines_processed,
+            'homeexp_line_ids': homeexp_lines_processed,
         }
 
         user_name = request.env.user.name or 'User'
@@ -646,6 +619,14 @@ class FabricErpController(http.Controller):
                 'body': m.body or ''
             })
 
+        products = request.env['fabric.product'].sudo().search_read([], ['id', 'name', 'code', 'unit', 'price_per_unit', 'quantity'])
+        saved_sale_lines = [{
+            'id': l.id,
+            'customer_name': l.customer_name or '',
+            'item_name': l.item_name or '',
+            'qty': l.qty,
+        } for l in sheet.sale_line_ids]
+
         return {
             'status': 'success',
             'sheet_id': sheet.id,
@@ -653,8 +634,35 @@ class FabricErpController(http.Controller):
             'create_time': create_time,
             'write_user': write_user,
             'write_time': write_time,
-            'history_logs': history_logs
+            'history_logs': history_logs,
+            'sale_lines_data': saved_sale_lines,
+            'products': products
         }
+
+    @http.route('/fabric_erp/delete_sale_line', type='json', auth='user')
+    def delete_sale_line(self, line_id, increase_stock=True):
+        try:
+            line_id = int(line_id)
+        except (ValueError, TypeError):
+            return {'status': 'error', 'message': 'Invalid line ID'}
+
+        sale_line = request.env['fabric.daily.sale.line'].sudo().browse(line_id)
+        if sale_line.exists():
+            sheet = sale_line.sheet_id
+            product = sale_line.product_id
+            if not product and sale_line.item_name:
+                product = request.env['fabric.product'].sudo().search([('name', '=ilike', sale_line.item_name.strip())], limit=1)
+
+            ctx = dict(request.env.context, keep_stock_deducted=not increase_stock)
+            sale_line.with_context(ctx).unlink()
+
+            if product:
+                product._compute_quantity()
+            if sheet:
+                sheet._compute_sheet_totals()
+
+        products = request.env['fabric.product'].sudo().search_read([], ['id', 'name', 'code', 'unit', 'price_per_unit', 'quantity'])
+        return {'status': 'success', 'products': products}
 
     @http.route('/fabric_erp/get_temp_visit_notes', type='json', auth='user')
     def get_temp_visit_notes(self):

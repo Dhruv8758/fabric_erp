@@ -349,8 +349,8 @@
                                     <th style="width:4%">No</th>
                                     <th style="width:15%">Customer</th>
                                     <th style="width:7%">Roll Qty</th>
-                                    <th style="width:9%">Meter Qty</th>
                                     <th>Item Name</th>
+                                    <th style="width:9%">Meter Qty</th>
                                     <th style="width:7%">Unit</th>
                                     <th style="width:11%">Price per M/Y</th>
                                     <th style="width:11%">Total Price</th>
@@ -361,8 +361,20 @@
                             </thead>
                             <tbody>
                                 <t t-foreach="state.saleLines" t-as="line" t-key="line.id">
-                                    <tr>
-                                        <td><t t-esc="line_index + 1"/></td>
+                                    <tr t-att-style="line.create_uid and line.create_uid === state.current_uid ? 'background-color: #f0f8ff;' : ''">
+                                        <td>
+                                            <t t-esc="line_index + 1"/>
+                                            <t t-if="line.create_uid">
+                                                <div style="font-size: 10px; margin-top: 4px; font-weight: bold; white-space: nowrap;" t-att-class="line.create_uid === state.current_uid ? 'text-primary' : 'text-muted'" t-att-title="'Created by ' + line.create_uid_name">
+                                                    <t t-if="line.create_uid === state.current_uid">
+                                                        <i class="fa fa-user"></i> Me
+                                                    </t>
+                                                    <t t-else="">
+                                                        <i class="fa fa-user-circle"></i> <t t-esc="line.create_uid_name.split(' ')[0]"/>
+                                                    </t>
+                                                </div>
+                                            </t>
+                                        </td>
                                         <td class="text-start" style="min-width: 160px;">
                                             <t t-if="!line.is_custom_customer">
                                                 <select class="form-select form-select-sm border text-dark fw-bold" t-model="line.customer_name" t-on-change="(ev) => this.onCustomerSelectChange(line, ev)">
@@ -394,12 +406,6 @@
                                             <input type="number" t-model="line.roll_qty" t-on-input="() => this.updateSaleRow(line)" step="any" placeholder="Roll Qty"/>
                                             <button class="btn btn-sm btn-link p-0 no-print fw-bold text-primary text-decoration-none" style="font-size:10px;" t-on-click="() => this.openRollBreakdownModal(line)" title="Click to enter individual meters for each roll">📐 Meters</button>
                                         </td>
-                                        <td>
-                                            <input type="number" t-model="line.qty" t-on-input="() => this.updateSaleRow(line)" step="any" placeholder="Meter Qty"/>
-                                            <t t-if="line.roll_meters_str">
-                                                <span class="d-block text-primary fw-bold" style="font-size:9px;" title="Roll breakdown">(<t t-esc="line.roll_meters_str"/> m)</span>
-                                            </t>
-                                        </td>
                                         <td class="text-start" style="min-width: 160px;">
                                             <t t-if="!line.is_custom_item">
                                                 <select class="form-select form-select-sm border text-dark fw-bold" t-model="line.item_name" t-on-change="(ev) => this.onItemSelectChange(line, ev)">
@@ -425,6 +431,12 @@
                                                 <div class="text-primary fw-bold text-center w-100" style="font-size: 11px; margin-top: 4px;" title="Current Stock">
                                                     <i class="fa fa-cubes me-1"></i>Stock: <t t-esc="prodStock"/>
                                                 </div>
+                                            </t>
+                                        </td>
+                                        <td>
+                                            <input type="number" t-model="line.qty" t-on-input="() => this.updateSaleRow(line)" step="any" placeholder="Meter Qty"/>
+                                            <t t-if="line.roll_meters_str">
+                                                <span class="d-block text-primary fw-bold" style="font-size:9px;" title="Roll breakdown">(<t t-esc="line.roll_meters_str"/> m)</span>
                                             </t>
                                         </td>
                                         <td>
@@ -478,39 +490,55 @@
                             <thead>
                                 <tr>
                                     <th style="width:6%">No</th>
-                                    <th>Name / Note (Customer)</th>
-                                    <th style="width:22%">Money</th>
-                                    <th style="width:20%" class="text-center">Khata Sync</th>
+                                    <th style="width:25%">Customer</th>
+                                    <th>Note</th>
+                                    <th style="width:20%">Money</th>
+                                    <th style="width:15%" class="text-center">Khata Sync</th>
                                     <th style="width:5%" class="no-print"></th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <t t-foreach="state.cashinLines" t-as="line" t-key="line.id">
-                                    <tr>
-                                        <td><t t-esc="line_index + 1"/></td>
+                                    <tr t-att-style="line.create_uid and line.create_uid === state.current_uid ? 'background-color: #f0f8ff;' : ''">
+                                        <td>
+                                            <t t-esc="line_index + 1"/>
+                                            <t t-if="line.create_uid">
+                                                <div style="font-size: 10px; margin-top: 4px; font-weight: bold; white-space: nowrap;" t-att-class="line.create_uid === state.current_uid ? 'text-primary' : 'text-muted'" t-att-title="'Created by ' + line.create_uid_name">
+                                                    <t t-if="line.create_uid === state.current_uid">
+                                                        <i class="fa fa-user"></i> Me
+                                                    </t>
+                                                    <t t-else="">
+                                                        <i class="fa fa-user-circle"></i> <t t-esc="line.create_uid_name.split(' ')[0]"/>
+                                                    </t>
+                                                </div>
+                                            </t>
+                                        </td>
                                         <td class="text-start" style="min-width: 170px;">
                                             <t t-if="!line.is_custom_customer">
-                                                <select class="form-select form-select-sm border text-dark fw-bold" t-model="line.note" t-on-change="(ev) => this.onCashinSelectChange(line, ev)">
-                                                    <option value="">-- Select Customer / Note --</option>
+                                                <select class="form-select form-select-sm border text-dark fw-bold" t-model="line.customer_name" t-on-change="(ev) => this.onCashinSelectChange(line, ev)">
+                                                    <option value="">-- Select Customer --</option>
                                                     <t t-foreach="state.customers || []" t-as="c" t-key="c.id || c.name">
                                                         <option t-att-value="c.name" t-esc="c.name"/>
                                                     </t>
-                                                    <option value="__new__" class="fw-bold text-primary">➕ Add New Customer / Note...</option>
+                                                    <option value="__new__" class="fw-bold text-primary">➕ Add New Customer...</option>
                                                 </select>
                                             </t>
                                             <t t-if="line.is_custom_customer">
                                                 <div class="input-group input-group-sm">
-                                                    <input type="text" class="form-control text-start border-primary" t-model="line.note" t-on-input="() => this.onCashinInput(line)" t-on-change="() => this.onCashinChange(line)" placeholder="Enter Customer Name or Note"/>
+                                                    <input type="text" class="form-control text-start border-primary" t-model="line.customer_name" t-on-input="() => this.onCashinInput(line)" t-on-change="() => this.onCashinChange(line)" placeholder="Enter Customer Name"/>
                                                     <button class="btn btn-success py-0 px-2 fw-bold" t-on-click="() => this.saveCustomCashinCustomer(line)" title="Save Customer">✓</button>
                                                     <button class="btn btn-outline-secondary py-0 px-2" t-on-click="() => this.cancelCustomCashin(line)" title="Back to list">✕</button>
                                                 </div>
                                             </t>
-                                            <t t-set="custBal" t-value="this.getCustomerBalance(line.note)"/>
+                                            <t t-set="custBal" t-value="this.getCustomerBalance(line.customer_name)"/>
                                             <t t-if="custBal !== null">
                                                 <div class="text-primary fw-bold text-center w-100" style="font-size: 11px; margin-top: 4px;" title="Current Khata Balance">
                                                     <i class="fa fa-info-circle me-1"></i>Net Bal: <t t-esc="custBal"/>
                                                 </div>
                                             </t>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm text-start" t-model="line.note" t-on-input="() => this.onCashinInput(line)" placeholder="Note"/>
                                         </td>
                                         <td><input type="number" t-model="line.money" t-on-input="() => this.onCashinInput(line)" step="any" placeholder="Money"/></td>
                                         <td class="text-center align-middle">
@@ -534,7 +562,7 @@
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <td colspan="2" class="text-end pe-3 fw-bold">Total Cash In</td>
+                                    <td colspan="3" class="text-end pe-3 fw-bold">Total Cash In</td>
                                     <td class="fw-bold text-success fs-6"><t t-esc="totalCashin.toFixed(2)"/></td>
                                     <td colspan="2" class="no-print"></td>
                                 </tr>
@@ -559,46 +587,62 @@
                             <thead>
                                 <tr>
                                     <th style="width:6%">No</th>
-                                    <th>Name / Note (Customer)</th>
-                                    <th style="width:22%">Money</th>
-                                    <th style="width:20%" class="text-center">Khata Sync</th>
+                                    <th style="width:25%">Customer</th>
+                                    <th>Note</th>
+                                    <th style="width:20%">Money</th>
+                                    <th style="width:15%" class="text-center">Khata Sync</th>
                                     <th style="width:5%" class="no-print"></th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <t t-foreach="state.cashoutLines" t-as="line" t-key="line.id">
-                                    <tr>
-                                        <td><t t-esc="line_index + 1"/></td>
+                                    <tr t-att-style="line.create_uid and line.create_uid === state.current_uid ? 'background-color: #f0f8ff;' : ''">
+                                        <td>
+                                            <t t-esc="line_index + 1"/>
+                                            <t t-if="line.create_uid">
+                                                <div style="font-size: 10px; margin-top: 4px; font-weight: bold; white-space: nowrap;" t-att-class="line.create_uid === state.current_uid ? 'text-primary' : 'text-muted'" t-att-title="'Created by ' + line.create_uid_name">
+                                                    <t t-if="line.create_uid === state.current_uid">
+                                                        <i class="fa fa-user"></i> Me
+                                                    </t>
+                                                    <t t-else="">
+                                                        <i class="fa fa-user-circle"></i> <t t-esc="line.create_uid_name.split(' ')[0]"/>
+                                                    </t>
+                                                </div>
+                                            </t>
+                                        </td>
                                         <td class="text-start" style="min-width: 170px;">
                                             <t t-if="!line.is_custom_customer">
-                                                <select class="form-select form-select-sm border text-dark fw-bold" t-model="line.note" t-on-change="(ev) => this.onCashoutSelectChange(line, ev)">
-                                                    <option value="">-- Select Customer / Note --</option>
+                                                <select class="form-select form-select-sm border text-dark fw-bold" t-model="line.customer_name" t-on-change="(ev) => this.onCashoutSelectChange(line, ev)">
+                                                    <option value="">-- Select Customer --</option>
                                                     <t t-foreach="state.customers || []" t-as="c" t-key="c.id || c.name">
                                                         <option t-att-value="c.name" t-esc="c.name"/>
                                                     </t>
-                                                    <option value="__new__" class="fw-bold text-primary">➕ Add New Customer / Note...</option>
+                                                    <option value="__new__" class="fw-bold text-primary">➕ Add New Customer...</option>
                                                 </select>
                                             </t>
                                             <t t-if="line.is_custom_customer">
                                                 <div class="input-group input-group-sm">
-                                                    <t t-if="line.syncedSaleId || (line.note &amp;&amp; line.note.startsWith('Unpaid Sale:'))">
+                                                    <t t-if="line.syncedSaleId">
                                                         <span class="input-group-text bg-warning text-dark fw-bold border-warning" style="font-size:10px;" title="Synced from Sale Table Unpaid">
                                                             <i class="fa fa-shopping-cart me-1"></i>Unpaid
                                                         </span>
                                                     </t>
-                                                    <input type="text" class="form-control text-start border-primary" t-model="line.note" t-on-input="() => this.onCashoutInput(line)" t-on-change="() => this.onCashoutChange(line)" placeholder="Enter Customer Name or Note"/>
-                                                    <t t-if="!(line.syncedSaleId || (line.note &amp;&amp; line.note.startsWith('Unpaid Sale:')))">
+                                                    <input type="text" class="form-control text-start border-primary" t-model="line.customer_name" t-on-input="() => this.onCashoutInput(line)" t-on-change="() => this.onCashoutChange(line)" placeholder="Enter Customer Name"/>
+                                                    <t t-if="!(line.syncedSaleId)">
                                                         <button class="btn btn-success py-0 px-2 fw-bold" t-on-click="() => this.saveCustomCashoutCustomer(line)" title="Save Customer">✓</button>
                                                         <button class="btn btn-outline-secondary py-0 px-2" t-on-click="() => this.cancelCustomCashout(line)" title="Back to list">✕</button>
                                                     </t>
                                                 </div>
                                             </t>
-                                            <t t-set="custBal" t-value="this.getCustomerBalance(line.note)"/>
+                                            <t t-set="custBal" t-value="this.getCustomerBalance(line.customer_name)"/>
                                             <t t-if="custBal !== null">
                                                 <div class="text-primary fw-bold text-center w-100" style="font-size: 11px; margin-top: 4px;" title="Current Khata Balance">
                                                     <i class="fa fa-info-circle me-1"></i>Net Bal: <t t-esc="custBal"/>
                                                 </div>
                                             </t>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm text-start" t-model="line.note" t-on-input="() => this.onCashoutInput(line)" placeholder="Note"/>
                                         </td>
                                         <td><input type="number" t-model="line.money" t-on-input="() => this.onCashoutInput(line)" step="any" placeholder="Money"/></td>
                                         <td class="text-center align-middle">
@@ -622,7 +666,7 @@
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <td colspan="2" class="text-end pe-3 fw-bold">Total Cash Out</td>
+                                    <td colspan="3" class="text-end pe-3 fw-bold">Total Cash Out</td>
                                     <td class="fw-bold text-danger fs-6"><t t-esc="totalCashout.toFixed(2)"/></td>
                                     <td colspan="2" class="no-print"></td>
                                 </tr>
@@ -654,8 +698,20 @@
                             </thead>
                             <tbody>
                                 <t t-foreach="state.shopexpLines" t-as="line" t-key="line.id">
-                                    <tr>
-                                        <td><t t-esc="line_index + 1"/></td>
+                                    <tr t-att-style="line.create_uid and line.create_uid === state.current_uid ? 'background-color: #f0f8ff;' : ''">
+                                        <td>
+                                            <t t-esc="line_index + 1"/>
+                                            <t t-if="line.create_uid">
+                                                <div style="font-size: 10px; margin-top: 4px; font-weight: bold; white-space: nowrap;" t-att-class="line.create_uid === state.current_uid ? 'text-primary' : 'text-muted'" t-att-title="'Created by ' + line.create_uid_name">
+                                                    <t t-if="line.create_uid === state.current_uid">
+                                                        <i class="fa fa-user"></i> Me
+                                                    </t>
+                                                    <t t-else="">
+                                                        <i class="fa fa-user-circle"></i> <t t-esc="line.create_uid_name.split(' ')[0]"/>
+                                                    </t>
+                                                </div>
+                                            </t>
+                                        </td>
                                         <td class="text-start"><input type="text" class="text-start" t-model="line.note" t-on-input="() => this.onShopexpInput(line)" placeholder="Expense Note"/></td>
                                         <td><input type="number" t-model="line.money" t-on-input="() => this.onShopexpInput(line)" step="any" placeholder="Money"/></td>
                                         <td class="no-print">
@@ -698,8 +754,20 @@
                             </thead>
                             <tbody>
                                 <t t-foreach="state.homeexpLines" t-as="line" t-key="line.id">
-                                    <tr>
-                                        <td><t t-esc="line_index + 1"/></td>
+                                    <tr t-att-style="line.create_uid and line.create_uid === state.current_uid ? 'background-color: #f0f8ff;' : ''">
+                                        <td>
+                                            <t t-esc="line_index + 1"/>
+                                            <t t-if="line.create_uid">
+                                                <div style="font-size: 10px; margin-top: 4px; font-weight: bold; white-space: nowrap;" t-att-class="line.create_uid === state.current_uid ? 'text-primary' : 'text-muted'" t-att-title="'Created by ' + line.create_uid_name">
+                                                    <t t-if="line.create_uid === state.current_uid">
+                                                        <i class="fa fa-user"></i> Me
+                                                    </t>
+                                                    <t t-else="">
+                                                        <i class="fa fa-user-circle"></i> <t t-esc="line.create_uid_name.split(' ')[0]"/>
+                                                    </t>
+                                                </div>
+                                            </t>
+                                        </td>
                                         <td class="text-start"><input type="text" class="text-start" t-model="line.note" t-on-input="() => this.onHomeexpInput(line)" placeholder="Home Expense Note"/></td>
                                         <td><input type="number" t-model="line.money" t-on-input="() => this.onHomeexpInput(line)" step="any" placeholder="Money"/></td>
                                         <td class="no-print">
@@ -769,13 +837,16 @@
 
                 <!-- SAVE & PRINT CONTROLS -->
                 <div class="d-flex justify-content-center gap-3 no-print mt-4 action-buttons-wrapper">
-                    <button class="btn btn-success fw-bold px-4 py-2" t-on-click="saveSheet">
+                    <button class="btn btn-outline-success fw-bold px-4 py-2" t-on-click="saveSheet">
                         <i class="fa fa-save me-1"></i> Save Sheet
                     </button>
-                    <button class="btn btn-primary fw-bold px-4 py-2" t-on-click="printSheet">
+                    <button class="btn btn-outline-primary fw-bold px-4 py-2" t-on-click="printSheet">
                         <i class="fa fa-print me-1"></i> Print / Save as PDF
                     </button>
-                    <button class="btn btn-danger fw-bold px-4 py-2" t-on-click="clearAllSheet" title="Clear all entries for the selected date">
+                    <button class="btn btn-outline-success fw-bold px-4 py-2" t-on-click="shareToWhatsApp" title="Share Sheet to WhatsApp">
+                        <i class="fa fa-whatsapp me-1" style="font-size: 1.1em;"></i> Share to WA
+                    </button>
+                    <button class="btn btn-outline-danger fw-bold px-4 py-2" t-on-click="clearAllSheet" title="Clear all entries for the selected date">
                         <i class="fa fa-trash me-1"></i> Clear Entire Sheet
                     </button>
                 </div>

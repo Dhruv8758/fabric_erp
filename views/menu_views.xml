@@ -8,7 +8,7 @@
     </record>
 
     <!-- TOP MENU ROOT -->
-    <menuitem id="menu_fabric_root" name="Aaradhya ERP" web_icon="fabric_erp,static/description/icon.png" sequence="0"/>
+    <menuitem id="menu_fabric_root" name="Aaradhya ERP" web_icon="fabric_erp,static/description/icon.png" sequence="50"/>
 
     <!-- MAIN DIRECT TOP MENUS -->
     <menuitem id="menu_fabric_dashboard_item" name="Dashboard" parent="menu_fabric_root" action="action_fabric_dashboard" sequence="1"/>

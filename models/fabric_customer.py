@@ -104,3 +104,34 @@ class FabricCustomer(models.Model):
             'type': 'ir.actions.client',
             'tag': 'fabric_erp.dashboard',
         }
+
+    def action_share_whatsapp(self):
+        self.ensure_one()
+        txs = self.env['fabric.khata.transaction'].search([('customer_id', '=', self.id)], order='date desc, id desc', limit=10)
+        
+        msg = f"*Khata Summary for {self.name}*\n"
+        msg += f"*Current Net Balance:* {self.current_net_balance:.2f}\n\n"
+        
+        if txs:
+            msg += "*Last 10 Transactions:*\n"
+            # Reverse the list so the oldest is first, or keep newest first depending on preference. 
+            # I will keep newest first.
+            for i, tx in enumerate(txs):
+                t_date = tx.date.strftime('%d-%b-%Y') if tx.date else ''
+                t_type = 'Udhaar' if tx.entry_type == 'udhaar' else 'Jama'
+                msg += f"{i+1}. {t_date} | {t_type} | {tx.amount:.2f} | {tx.particulars}\n"
+        else:
+            msg += "No transactions found.\n"
+            
+        import urllib.parse
+        encoded_msg = urllib.parse.quote(msg.strip())
+        
+        phone = self.phone or ''
+        phone = phone.replace('+', '').replace(' ', '').replace('-', '')
+        url = f"https://wa.me/{phone}?text={encoded_msg}" if (phone and phone != 'N/A') else f"https://wa.me/?text={encoded_msg}"
+
+        return {
+            'type': 'ir.actions.act_url',
+            'url': url,
+            'target': 'new',
+        }
