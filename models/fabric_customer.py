@@ -107,19 +107,27 @@ class FabricCustomer(models.Model):
 
     def action_share_whatsapp(self):
         self.ensure_one()
-        txs = self.env['fabric.khata.transaction'].search([('customer_id', '=', self.id)], order='date desc, id desc', limit=10)
+        # Fetch transactions in chronological order: first entry first, last created last
+        txs = self.env['fabric.khata.transaction'].search(
+            [('customer_id', '=', self.id)],
+            order='date asc, id asc'
+        )
         
         msg = f"*Khata Summary for {self.name}*\n"
         msg += f"*Current Net Balance:* {self.current_net_balance:.2f}\n\n"
         
         if txs:
-            msg += "*Last 10 Transactions:*\n"
-            # Reverse the list so the oldest is first, or keep newest first depending on preference. 
-            # I will keep newest first.
+            if len(txs) > 50:
+                txs = txs[-50:]
+                msg += f"*Recent Transactions (Last {len(txs)}):*\n"
+            else:
+                msg += "*Transaction History:*\n"
+
             for i, tx in enumerate(txs):
                 t_date = tx.date.strftime('%d-%b-%Y') if tx.date else ''
                 t_type = 'Udhaar' if tx.entry_type == 'udhaar' else 'Jama'
-                msg += f"{i+1}. {t_date} | {t_type} | {tx.amount:.2f} | {tx.particulars}\n"
+                particulars = tx.particulars or ''
+                msg += f"{i+1}. {t_date} | {t_type} | {tx.amount:.2f} | {particulars}\n"
         else:
             msg += "No transactions found.\n"
             

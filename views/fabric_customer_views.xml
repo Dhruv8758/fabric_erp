@@ -122,7 +122,7 @@
                             <i class="fa fa-list-alt me-2 text-primary"></i>COMPLETE TRANSACTION LEDGER STATEMENT
                         </h4>
                         <field name="transaction_ids">
-                            <list string="Transactions" create="0">
+                            <list string="Transactions" create="0" default_order="date asc, id asc">
                                 <field name="currency_id" column_invisible="1"/>
                                 <field name="display_date"/>
                                 <field name="entry_type" widget="badge" decoration-success="entry_type == 'jama'" decoration-danger="entry_type == 'udhaar'"/>
