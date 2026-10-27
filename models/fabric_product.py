@@ -9,8 +9,18 @@ class FabricProduct(models.Model):
 
     name = fields.Char(string='Product Name', required=True, tracking=True)
     code = fields.Char(string='Product Code', tracking=True)
+    @api.model
+    def _get_unit_selection(self):
+        units = self.env['fabric.unit'].sudo().search([])
+        res = [(u.name, u.name) for u in units]
+        names = {u.name for u in units}
+        for default_unit in ['Meter', 'Yard', 'Roll', 'Piece', 'Kg']:
+            if default_unit not in names:
+                res.append((default_unit, default_unit))
+        return res
+
     unit_id = fields.Many2one('fabric.unit', string='Unit Master', tracking=True)
-    unit = fields.Char(string='Unit', default='Meter', tracking=True)
+    unit = fields.Selection(selection='_get_unit_selection', string='Unit', default='Meter', tracking=True)
     price_per_unit = fields.Float(string='Default Price', default=0.0, tracking=True)
 
     @api.onchange('unit_id')

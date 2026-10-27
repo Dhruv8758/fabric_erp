@@ -64,8 +64,18 @@ class FabricDailySaleLine(models.Model):
     customer_name = fields.Char(string='Customer Name')
     product_id = fields.Many2one('fabric.product', string='Product')
 
+    @api.model
+    def _get_unit_selection(self):
+        units = self.env['fabric.unit'].sudo().search([])
+        res = [(u.name, u.name) for u in units]
+        names = {u.name for u in units}
+        for default_unit in ['Meter', 'Yard', 'Roll', 'Piece', 'Kg']:
+            if default_unit not in names:
+                res.append((default_unit, default_unit))
+        return res
+
     item_name = fields.Char(string='Item / Fabric Name', required=True)
-    unit = fields.Char(string='Unit', default='Meter', required=True)
+    unit = fields.Selection(selection='_get_unit_selection', string='Unit', default='Meter', required=True)
 
     price_per_unit = fields.Float(string='Price per M/Y', default=0.0)
     total_price = fields.Float(string='Total Price', default=0.0)
