@@ -21,11 +21,11 @@
     <menuitem id="menu_fabric_inventory_cat" name="Inventory" parent="menu_fabric_root" sequence="4"/>
     <menuitem id="menu_fabric_product_item" name="Products / Stock" parent="menu_fabric_inventory_cat" action="action_fabric_product" sequence="1"/>
     <menuitem id="menu_fabric_product_sales_report_item" name="Product Sales Report" parent="menu_fabric_inventory_cat" action="action_fabric_product_sales_report" sequence="2"/>
+    <menuitem id="menu_fabric_unit_item" name="Units" parent="menu_fabric_inventory_cat" action="action_fabric_unit" sequence="3"/>
 
     <!-- ALL SETTINGS & MASTERS SUB-MENU -->
     <menuitem id="menu_fabric_settings_cat" name="Settings" parent="menu_fabric_root" sequence="6"/>
-    
-
+    <menuitem id="menu_fabric_unit_settings_item" name="Units Master" parent="menu_fabric_settings_cat" action="action_fabric_unit" sequence="1"/>
     <menuitem id="menu_fabric_daily_records" name="All Daily Sheet Records" parent="menu_fabric_settings_cat" action="action_fabric_daily_sheet" sequence="6"/>
 </odoo>
 

@@ -266,6 +266,22 @@ class FabricErpController(http.Controller):
         products = request.env['fabric.product'].sudo().search_read([], ['id', 'name', 'code', 'unit', 'price_per_unit', 'quantity'])
         return products
 
+    @http.route('/fabric_erp/get_units', type='json', auth='user')
+    def get_units(self):
+        units = request.env['fabric.unit'].sudo().search_read([('active', '=', True)], ['id', 'name', 'code'], order='sequence asc, name asc')
+        if not units:
+            defaults = [
+                {'name': 'Meter', 'code': 'M', 'sequence': 1},
+                {'name': 'Yard', 'code': 'YD', 'sequence': 2},
+                {'name': 'Roll', 'code': 'ROLL', 'sequence': 3},
+                {'name': 'Piece', 'code': 'PC', 'sequence': 4},
+                {'name': 'Kg', 'code': 'KG', 'sequence': 5},
+            ]
+            for d in defaults:
+                request.env['fabric.unit'].sudo().create(d)
+            units = request.env['fabric.unit'].sudo().search_read([('active', '=', True)], ['id', 'name', 'code'], order='sequence asc, name asc')
+        return units
+
     @http.route('/fabric_erp/create_product', type='json', auth='user')
     def create_product(self, name, unit='Meter', price=0.0):
         if not name or not name.strip():
@@ -273,7 +289,13 @@ class FabricErpController(http.Controller):
         name = name.strip()
         prod = request.env['fabric.product'].sudo().search([('name', '=ilike', name)], limit=1)
         if not prod:
-            prod = request.env['fabric.product'].sudo().create({'name': name, 'unit': unit, 'price_per_unit': price})
+            unit_rec = request.env['fabric.unit'].sudo().search([('name', '=ilike', unit)], limit=1)
+            prod = request.env['fabric.product'].sudo().create({
+                'name': name,
+                'unit': unit,
+                'unit_id': unit_rec.id if unit_rec else False,
+                'price_per_unit': price
+            })
         return {'status': 'success', 'id': prod.id, 'name': prod.name, 'unit': prod.unit, 'price_per_unit': prod.price_per_unit}
 
 

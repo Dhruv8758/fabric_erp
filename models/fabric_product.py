@@ -9,12 +9,14 @@ class FabricProduct(models.Model):
 
     name = fields.Char(string='Product Name', required=True, tracking=True)
     code = fields.Char(string='Product Code', tracking=True)
-    unit = fields.Selection([
-        ('Meter', 'Meter'),
-        ('Yard', 'Yard'),
-        ('Roll', 'Roll')
-    ], string='Unit', default='Meter', tracking=True)
+    unit_id = fields.Many2one('fabric.unit', string='Unit Master', tracking=True)
+    unit = fields.Char(string='Unit', default='Meter', tracking=True)
     price_per_unit = fields.Float(string='Default Price', default=0.0, tracking=True)
+
+    @api.onchange('unit_id')
+    def _onchange_unit_id(self):
+        if self.unit_id:
+            self.unit = self.unit_id.name
     
     quantity = fields.Float(string='Current Stock', compute='_compute_quantity', store=True, tracking=True)
     

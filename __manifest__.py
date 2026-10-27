@@ -12,6 +12,7 @@
         'views/fabric_product_views.xml',
         'views/fabric_daily_sheet_views.xml',
         'views/fabric_visit_note_views.xml',
+        'views/fabric_unit_views.xml',
         'views/menu_views.xml',
     ],
     'assets': {

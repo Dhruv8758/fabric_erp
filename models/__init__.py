@@ -5,3 +5,4 @@ from . import fabric_product
 from . import fabric_khata
 from . import fabric_daily_sheet
 from . import fabric_visit_note
+from . import fabric_unit

@@ -12,3 +12,4 @@ access_fabric_visit_note_user,fabric.visit.note.user,model_fabric_visit_note,bas
 access_fabric_product_user,fabric.product.user,model_fabric_product,base.group_user,1,1,1,1
 access_fabric_product_stock_entry_user,fabric.product.stock.entry.user,model_fabric_product_stock_entry,base.group_user,1,1,1,1
 access_fabric_container_user,fabric.container.user,model_fabric_container,base.group_user,1,1,1,1
+access_fabric_unit_user,fabric.unit.user,model_fabric_unit,base.group_user,1,1,1,1

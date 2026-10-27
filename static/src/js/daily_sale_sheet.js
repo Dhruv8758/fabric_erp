@@ -23,6 +23,7 @@ export class DailySaleSheetComponent extends Component {
             containerWidthVal: savedWidth, // '100%', '95%', '90%', '80%', '960px'
             products: [],
             customers: [],
+            units: [],
             saleLines: [
                 { id: 1, customer_name: '', roll_qty: '', qty: '', item_name: '', unit: 'Meter', price: '', total: '', note: '', is_unpaid: false }
             ],
@@ -60,8 +61,11 @@ export class DailySaleSheetComponent extends Component {
 
                 const resCust = await rpc("/fabric_erp/get_customers");
                 this.state.customers = resCust || [];
+
+                const resUnits = await rpc("/fabric_erp/get_units");
+                this.state.units = resUnits || [];
             } catch (e) {
-                console.error("Failed to load inventory/customer items:", e);
+                console.error("Failed to load inventory/customer/unit items:", e);
             }
             await this.loadSheetByDate(this.state.date);
         });
@@ -302,6 +306,14 @@ export class DailySaleSheetComponent extends Component {
         return this.state.saleLines.reduce((sum, line) => sum + (parseFloat(line.total) || 0), 0);
     }
 
+    get totalSaleRollQty() {
+        return this.state.saleLines.reduce((sum, line) => sum + (parseFloat(line.roll_qty) || 0), 0);
+    }
+
+    get totalSaleMeterQty() {
+        return this.state.saleLines.reduce((sum, line) => sum + (parseFloat(line.qty) || 0), 0);
+    }
+
     get totalCashin() {
         return this.state.cashinLines.reduce((sum, line) => sum + (parseFloat(line.money) || 0), 0);
     }
@@ -324,6 +336,46 @@ export class DailySaleSheetComponent extends Component {
 
     get currentDayBalance() {
         return this.subTotal - this.totalCashout - this.totalShopexp - this.totalHomeexp;
+    }
+
+    get validSaleLines() {
+        return this.state.saleLines.filter(l => 
+            (l.customer_name && l.customer_name.trim()) || 
+            (l.item_name && l.item_name.trim()) || 
+            (parseFloat(l.qty) > 0) || 
+            (parseFloat(l.total) > 0) ||
+            (parseFloat(l.roll_qty) > 0)
+        );
+    }
+
+    get validCashinLines() {
+        return this.state.cashinLines.filter(l => 
+            (l.customer_name && l.customer_name.trim()) || 
+            (parseFloat(l.money) > 0) || 
+            (l.note && l.note.trim())
+        );
+    }
+
+    get validCashoutLines() {
+        return this.state.cashoutLines.filter(l => 
+            (l.customer_name && l.customer_name.trim()) || 
+            (parseFloat(l.money) > 0) || 
+            (l.note && l.note.trim())
+        );
+    }
+
+    get validShopexpLines() {
+        return this.state.shopexpLines.filter(l => 
+            (parseFloat(l.money) > 0) || 
+            (l.note && l.note.trim())
+        );
+    }
+
+    get validHomeexpLines() {
+        return this.state.homeexpLines.filter(l => 
+            (parseFloat(l.money) > 0) || 
+            (l.note && l.note.trim())
+        );
     }
 
     // Auto-Add Empty Line Logic
@@ -483,7 +535,7 @@ export class DailySaleSheetComponent extends Component {
             const match = this.state.products.find(i => (i.name || '').toLowerCase() === trimmed.toLowerCase());
             if (match) {
                 if (match.unit) {
-                    line.unit = match.unit.toLowerCase() === 'yard' ? 'Yard' : 'Meter';
+                    line.unit = match.unit;
                 }
                 if (match.price_per_unit) {
                     line.price = match.price_per_unit;
@@ -966,7 +1018,7 @@ export class DailySaleSheetComponent extends Component {
                 }
                 line.item_name = res.name;
                 if (res.unit) {
-                    line.unit = res.unit.toLowerCase() === 'yard' ? 'Yard' : 'Meter';
+                    line.unit = res.unit;
                 }
                 if (res.price_per_unit) {
                     line.price = res.price_per_unit;
@@ -1048,43 +1100,113 @@ export class DailySaleSheetComponent extends Component {
         window.print();
     }
 
-    async shareToWhatsApp() {
-        if (!window.html2pdf) {
-            if (this.notification) {
-                this.notification.add("Loading PDF generator...", { type: "info" });
-            }
-            try {
-                await new Promise((resolve, reject) => {
-                    const script = document.createElement('script');
-                    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
-                    script.onload = resolve;
-                    script.onerror = reject;
-                    document.head.appendChild(script);
-                });
-            } catch (e) {
-                console.error("Failed to load html2pdf", e);
-                if (this.notification) this.notification.add("Failed to load PDF generator. Using Print dialog instead.", { type: "warning" });
-                window.print();
-                return;
-            }
+    async ensureHtml2Pdf() {
+        if (window.html2pdf) return true;
+        try {
+            await new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+            return true;
+        } catch (e) {
+            console.error("Failed to load html2pdf", e);
+            return false;
+        }
+    }
+
+    async downloadPDF() {
+        const loaded = await this.ensureHtml2Pdf();
+        if (!loaded) {
+            if (this.notification) this.notification.add("Opening print dialog...", { type: "info" });
+            window.print();
+            return;
         }
 
-        const element = document.querySelector('.sheet-container');
-        
-        const noPrintElements = element.querySelectorAll('.no-print');
-        noPrintElements.forEach(el => el.style.display = 'none');
-
-        const opt = {
-            margin:       0.2,
-            filename:     `Daily_Sale_Sheet_${this.state.date}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true },
-            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-        };
+        const reportEl = document.getElementById('cleanPrintReport');
+        if (!reportEl) {
+            window.print();
+            return;
+        }
 
         if (this.notification) {
-            this.notification.add("Generating PDF for WhatsApp...", { type: "info" });
+            this.notification.add("Generating Clean Salesheet PDF...", { type: "info" });
         }
+
+        const clone = reportEl.cloneNode(true);
+        clone.id = 'cleanPrintReportClone';
+        clone.style.display = 'block';
+        clone.style.position = 'fixed';
+        clone.style.top = '-99999px';
+        clone.style.left = '0';
+        clone.style.width = '794px';
+        clone.style.background = '#ffffff';
+        clone.style.color = '#000000';
+        document.body.appendChild(clone);
+
+        const opt = {
+            margin: [0.25, 0.25, 0.25, 0.25],
+            filename: `Daily_Sale_Sheet_${this.state.date}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, logging: false },
+            jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
+            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+        };
+
+        try {
+            await html2pdf().set(opt).from(clone).save();
+            if (this.notification) {
+                this.notification.add("Clean Salesheet PDF Downloaded Successfully!", { type: "success" });
+            }
+        } catch (err) {
+            console.error("PDF download failed", err);
+            window.print();
+        } finally {
+            if (clone.parentNode) {
+                clone.parentNode.removeChild(clone);
+            }
+        }
+    }
+
+    async shareToWhatsApp() {
+        const loaded = await this.ensureHtml2Pdf();
+        if (!loaded) {
+            if (this.notification) this.notification.add("Failed to load PDF generator. Using Print dialog instead.", { type: "warning" });
+            window.print();
+            return;
+        }
+
+        const reportEl = document.getElementById('cleanPrintReport');
+        if (!reportEl) {
+            window.print();
+            return;
+        }
+
+        if (this.notification) {
+            this.notification.add("Generating Clean PDF for WhatsApp...", { type: "info" });
+        }
+
+        const clone = reportEl.cloneNode(true);
+        clone.id = 'cleanPrintReportCloneWA';
+        clone.style.display = 'block';
+        clone.style.position = 'fixed';
+        clone.style.top = '-99999px';
+        clone.style.left = '0';
+        clone.style.width = '794px';
+        clone.style.background = '#ffffff';
+        clone.style.color = '#000000';
+        document.body.appendChild(clone);
+
+        const opt = {
+            margin: [0.25, 0.25, 0.25, 0.25],
+            filename: `Daily_Sale_Sheet_${this.state.date}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, logging: false },
+            jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
+            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+        };
 
         const triggerFallback = (pdfBlob, filename) => {
             const url = URL.createObjectURL(pdfBlob);
@@ -1103,32 +1225,28 @@ export class DailySaleSheetComponent extends Component {
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
         };
 
-        html2pdf().set(opt).from(element).outputPdf('blob').then((pdfBlob) => {
-            noPrintElements.forEach(el => el.style.display = '');
-
+        try {
+            const pdfBlob = await html2pdf().set(opt).from(clone).outputPdf('blob');
             const file = new File([pdfBlob], opt.filename, { type: 'application/pdf' });
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             
             if (isMobile && navigator.canShare && navigator.canShare({ files: [file] })) {
-                navigator.share({
+                await navigator.share({
                     title: `Daily Sale Sheet ${this.state.date}`,
                     text: `Here is the daily sale sheet for ${this.state.date}.`,
                     files: [file]
-                }).catch(err => {
-                    console.log('Error sharing:', err);
-                    triggerFallback(pdfBlob, opt.filename);
                 });
             } else {
                 triggerFallback(pdfBlob, opt.filename);
             }
-        }).catch(err => {
-            noPrintElements.forEach(el => el.style.display = '');
+        } catch (err) {
             console.error("PDF generation failed", err);
-            if (this.notification) {
-                this.notification.add("Failed to generate PDF. Using Print instead.", { type: "danger" });
+            triggerFallback(null, opt.filename);
+        } finally {
+            if (clone.parentNode) {
+                clone.parentNode.removeChild(clone);
             }
-            window.print();
-        });
+        }
     }
 
     async saveSheet() {

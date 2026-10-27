@@ -65,10 +65,7 @@ class FabricDailySaleLine(models.Model):
     product_id = fields.Many2one('fabric.product', string='Product')
 
     item_name = fields.Char(string='Item / Fabric Name', required=True)
-    unit = fields.Selection([
-        ('Meter', 'Meter'),
-        ('Yard', 'Yard')
-    ], string='Unit', default='Meter', required=True)
+    unit = fields.Char(string='Unit', default='Meter', required=True)
 
     price_per_unit = fields.Float(string='Price per M/Y', default=0.0)
     total_price = fields.Float(string='Total Price', default=0.0)

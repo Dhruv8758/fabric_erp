@@ -46,7 +46,8 @@
                     <group>
                         <group>
                             <field name="code"/>
-                            <field name="unit"/>
+                            <field name="unit_id" options="{'no_create_edit': False}"/>
+                            <field name="unit" invisible="1"/>
                         </group>
                         <group>
                             <field name="price_per_unit"/>
