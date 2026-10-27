@@ -1096,8 +1096,370 @@ export class DailySaleSheetComponent extends Component {
         }
     }
 
+    generateCleanReportHtml() {
+        const dateStr = this.state.date || '';
+        const lastBalStr = this.formatVal(this.state.lastBalance) || '0.00';
+        
+        // Filter valid sale lines
+        const validSales = (this.state.saleLines || []).filter(l => 
+            (l.customer_name && String(l.customer_name).trim() !== '') || 
+            (l.item_name && String(l.item_name).trim() !== '') || 
+            (parseFloat(l.qty) > 0) || 
+            (parseFloat(l.total) > 0) || 
+            (parseFloat(l.roll_qty) > 0)
+        );
+
+        let saleRowsHtml = '';
+        if (validSales.length > 0) {
+            validSales.forEach((line, idx) => {
+                const unpaidBadge = line.is_unpaid ? '<span style="display:inline-block; background:#ffedd5; color:#c2410c; border:1px solid #fed7aa; border-radius:3px; padding:1px 4px; font-weight:700; font-size:8.5px; margin-left:4px;">UNPAID</span>' : '';
+                const rollBreakdown = line.roll_meters_str ? `<div style="font-size:8.5px; color:#475569; font-weight:normal; margin-top:1px;">(${line.roll_meters_str} m)</div>` : '';
+                saleRowsHtml += `
+                    <tr style="page-break-inside:avoid; border-bottom:1px solid #cbd5e1;">
+                        <td style="border:1px solid #cbd5e1; padding:6px 4px; text-align:center;">${idx + 1}</td>
+                        <td style="border:1px solid #cbd5e1; padding:6px 8px; text-align:left; font-weight:600; color:#0f172a;">${line.customer_name || '-'}</td>
+                        <td style="border:1px solid #cbd5e1; padding:6px 4px; text-align:center;">${line.roll_qty || '-'}</td>
+                        <td style="border:1px solid #cbd5e1; padding:6px 8px; text-align:left; font-weight:500;">${line.item_name || '-'}</td>
+                        <td style="border:1px solid #cbd5e1; padding:6px 4px; text-align:right; font-weight:600;">${line.qty || '0'}${rollBreakdown}</td>
+                        <td style="border:1px solid #cbd5e1; padding:6px 4px; text-align:center; color:#475569;">${line.unit || 'Meter'}</td>
+                        <td style="border:1px solid #cbd5e1; padding:6px 4px; text-align:right;">${line.price || '0'}</td>
+                        <td style="border:1px solid #cbd5e1; padding:6px 8px; text-align:right; font-weight:700; color:#166534;">${line.total || '0'}</td>
+                        <td style="border:1px solid #cbd5e1; padding:6px 8px; text-align:left; font-size:10px; color:#334155;">${line.note || ''}${unpaidBadge}</td>
+                    </tr>
+                `;
+            });
+        } else {
+            saleRowsHtml = `
+                <tr>
+                    <td colspan="9" style="border:1px solid #cbd5e1; padding:12px; text-align:center; color:#64748b; font-style:italic;">No sales entries recorded for this date.</td>
+                </tr>
+            `;
+        }
+
+        // Cash In
+        const validCashin = (this.state.cashinLines || []).filter(l => 
+            (l.customer_name && String(l.customer_name).trim() !== '') || 
+            (parseFloat(l.money) > 0) || 
+            (l.note && String(l.note).trim() !== '')
+        );
+        let cashinSection = '';
+        if (validCashin.length > 0) {
+            let cashinRows = '';
+            validCashin.forEach((l, idx) => {
+                cashinRows += `
+                    <tr style="page-break-inside:avoid; border-bottom:1px solid #cbd5e1;">
+                        <td style="border:1px solid #cbd5e1; padding:5px 4px; text-align:center;">${idx + 1}</td>
+                        <td style="border:1px solid #cbd5e1; padding:5px 8px; text-align:left; font-weight:600;">${l.customer_name || '-'}</td>
+                        <td style="border:1px solid #cbd5e1; padding:5px 8px; text-align:left; color:#334155;">${l.note || '-'}</td>
+                        <td style="border:1px solid #cbd5e1; padding:5px 8px; text-align:right; font-weight:700; color:#166534;">${l.money || '0'}</td>
+                    </tr>
+                `;
+            });
+            cashinSection = `
+                <div style="margin-bottom:14px; page-break-inside:auto;">
+                    <div style="font-size:13px; font-weight:700; color:#166534; padding-bottom:4px; margin-bottom:6px; border-bottom:1.5px solid #166534;">
+                        ⬇ CASH IN
+                    </div>
+                    <table style="width:100%; border-collapse:collapse; font-size:10.5px;">
+                        <thead>
+                            <tr style="background-color:#166534; color:#ffffff;">
+                                <th style="border:1px solid #14532d; padding:5px 4px; text-align:center; width:5%;">#</th>
+                                <th style="border:1px solid #14532d; padding:5px 8px; text-align:left; width:35%;">Customer</th>
+                                <th style="border:1px solid #14532d; padding:5px 8px; text-align:left; width:35%;">Note</th>
+                                <th style="border:1px solid #14532d; padding:5px 8px; text-align:right; width:25%;">Money</th>
+                            </tr>
+                        </thead>
+                        <tbody>${cashinRows}</tbody>
+                        <tfoot>
+                            <tr style="background:#f0fdf4; font-weight:700;">
+                                <td colspan="3" style="border:1px solid #86efac; padding:6px 8px; text-align:right;">Total Cash In</td>
+                                <td style="border:1px solid #86efac; padding:6px 8px; text-align:right; font-size:11.5px; color:#166534;">${this.totalCashin.toFixed(2)}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            `;
+        }
+
+        // Cash Out
+        const validCashout = (this.state.cashoutLines || []).filter(l => 
+            (l.customer_name && String(l.customer_name).trim() !== '') || 
+            (parseFloat(l.money) > 0) || 
+            (l.note && String(l.note).trim() !== '')
+        );
+        let cashoutSection = '';
+        if (validCashout.length > 0) {
+            let cashoutRows = '';
+            validCashout.forEach((l, idx) => {
+                cashoutRows += `
+                    <tr style="page-break-inside:avoid; border-bottom:1px solid #cbd5e1;">
+                        <td style="border:1px solid #cbd5e1; padding:5px 4px; text-align:center;">${idx + 1}</td>
+                        <td style="border:1px solid #cbd5e1; padding:5px 8px; text-align:left; font-weight:600;">${l.customer_name || '-'}</td>
+                        <td style="border:1px solid #cbd5e1; padding:5px 8px; text-align:left; color:#334155;">${l.note || '-'}</td>
+                        <td style="border:1px solid #cbd5e1; padding:5px 8px; text-align:right; font-weight:700; color:#991b1b;">${l.money || '0'}</td>
+                    </tr>
+                `;
+            });
+            cashoutSection = `
+                <div style="margin-bottom:14px; page-break-inside:auto;">
+                    <div style="font-size:13px; font-weight:700; color:#991b1b; padding-bottom:4px; margin-bottom:6px; border-bottom:1.5px solid #991b1b;">
+                        ⬆ CASH OUT
+                    </div>
+                    <table style="width:100%; border-collapse:collapse; font-size:10.5px;">
+                        <thead>
+                            <tr style="background-color:#991b1b; color:#ffffff;">
+                                <th style="border:1px solid #7f1d1d; padding:5px 4px; text-align:center; width:5%;">#</th>
+                                <th style="border:1px solid #7f1d1d; padding:5px 8px; text-align:left; width:35%;">Customer</th>
+                                <th style="border:1px solid #7f1d1d; padding:5px 8px; text-align:left; width:35%;">Note</th>
+                                <th style="border:1px solid #7f1d1d; padding:5px 8px; text-align:right; width:25%;">Money</th>
+                            </tr>
+                        </thead>
+                        <tbody>${cashoutRows}</tbody>
+                        <tfoot>
+                            <tr style="background:#fef2f2; font-weight:700;">
+                                <td colspan="3" style="border:1px solid #fca5a5; padding:6px 8px; text-align:right;">Total Cash Out</td>
+                                <td style="border:1px solid #fca5a5; padding:6px 8px; text-align:right; font-size:11.5px; color:#991b1b;">${this.totalCashout.toFixed(2)}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            `;
+        }
+
+        // Expenses
+        const validShopexp = (this.state.shopexpLines || []).filter(l => (parseFloat(l.money) > 0) || (l.note && String(l.note).trim() !== ''));
+        const validHomeexp = (this.state.homeexpLines || []).filter(l => (parseFloat(l.money) > 0) || (l.note && String(l.note).trim() !== ''));
+        let expensesSection = '';
+        if (validShopexp.length > 0 || validHomeexp.length > 0) {
+            let shopHtml = '';
+            if (validShopexp.length > 0) {
+                let sRows = '';
+                validShopexp.forEach((l, idx) => {
+                    sRows += `
+                        <tr style="border-bottom:1px solid #e2e8f0;">
+                            <td style="padding:4px; text-align:center;">${idx + 1}</td>
+                            <td style="padding:4px 6px; text-align:left;">${l.note || '-'}</td>
+                            <td style="padding:4px 6px; text-align:right; font-weight:600;">${l.money || '0'}</td>
+                        </tr>
+                    `;
+                });
+                shopHtml = `
+                    <div style="flex:1; page-break-inside:avoid;">
+                        <div style="font-size:12px; font-weight:700; color:#854d0e; padding-bottom:3px; margin-bottom:5px; border-bottom:1.5px solid #854d0e;">
+                            🏬 SHOP EXPENSE
+                        </div>
+                        <table style="width:100%; border-collapse:collapse; font-size:10px;">
+                            <thead>
+                                <tr style="background:#854d0e; color:#fff;">
+                                    <th style="padding:4px; text-align:center; width:8%;">#</th>
+                                    <th style="padding:4px 6px; text-align:left;">Note</th>
+                                    <th style="padding:4px 6px; text-align:right; width:35%;">Money</th>
+                                </tr>
+                            </thead>
+                            <tbody>${sRows}</tbody>
+                            <tfoot>
+                                <tr style="background:#fefce8; font-weight:700;">
+                                    <td colspan="2" style="padding:5px 6px; text-align:right;">Total:</td>
+                                    <td style="padding:5px 6px; text-align:right;">${this.totalShopexp.toFixed(2)}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                `;
+            }
+
+            let homeHtml = '';
+            if (validHomeexp.length > 0) {
+                let hRows = '';
+                validHomeexp.forEach((l, idx) => {
+                    hRows += `
+                        <tr style="border-bottom:1px solid #e2e8f0;">
+                            <td style="padding:4px; text-align:center;">${idx + 1}</td>
+                            <td style="padding:4px 6px; text-align:left;">${l.note || '-'}</td>
+                            <td style="padding:4px 6px; text-align:right; font-weight:600;">${l.money || '0'}</td>
+                        </tr>
+                    `;
+                });
+                homeHtml = `
+                    <div style="flex:1; page-break-inside:avoid;">
+                        <div style="font-size:12px; font-weight:700; color:#6b21a8; padding-bottom:3px; margin-bottom:5px; border-bottom:1.5px solid #6b21a8;">
+                            🏠 HOME EXPENSE
+                        </div>
+                        <table style="width:100%; border-collapse:collapse; font-size:10px;">
+                            <thead>
+                                <tr style="background:#6b21a8; color:#fff;">
+                                    <th style="padding:4px; text-align:center; width:8%;">#</th>
+                                    <th style="padding:4px 6px; text-align:left;">Note</th>
+                                    <th style="padding:4px 6px; text-align:right; width:35%;">Money</th>
+                                </tr>
+                            </thead>
+                            <tbody>${hRows}</tbody>
+                            <tfoot>
+                                <tr style="background:#faf5ff; font-weight:700;">
+                                    <td colspan="2" style="padding:5px 6px; text-align:right;">Total:</td>
+                                    <td style="padding:5px 6px; text-align:right;">${this.totalHomeexp.toFixed(2)}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                `;
+            }
+
+            expensesSection = `
+                <div style="display:flex; gap:12px; margin-bottom:14px; page-break-inside:auto;">
+                    ${shopHtml}
+                    ${homeHtml}
+                </div>
+            `;
+        }
+
+        return `
+            <div style="background:#ffffff; color:#1a1a1a; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size:11px; line-height:1.35; padding:10px 14px;">
+                <!-- HEADER -->
+                <div style="border-bottom:2px solid #2c3e50; padding-bottom:8px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:flex-end;">
+                    <div>
+                        <h1 style="margin:0; font-size:20px; font-weight:800; color:#2c3e50; text-transform:uppercase; letter-spacing:0.5px;">DAILY SALE SHEET</h1>
+                        <div style="font-size:11px; color:#666; margin-top:2px;">
+                            Date: <strong style="color:#0f172a;">${dateStr}</strong>
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:12px; font-weight:700; color:#2c3e50; background:#f1f5f9; padding:4px 10px; border:1px solid #cbd5e1; border-radius:4px; display:inline-block;">
+                            Date: <span style="color:#0f172a;">${dateStr}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LAST WORKING DAY BALANCE -->
+                <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:4px; padding:7px 12px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-weight:700; color:#334155; font-size:12px;">Last Working Day Total Balance:</span>
+                    <span style="font-weight:800; font-size:13px; color:#0f172a;">${lastBalStr}</span>
+                </div>
+
+                <!-- SALE TABLE -->
+                <div style="margin-bottom:14px; page-break-inside:auto;">
+                    <div style="font-size:13px; font-weight:700; color:#1e293b; padding-bottom:4px; margin-bottom:6px; border-bottom:1.5px solid #0f172a;">
+                        🛒 SALE
+                    </div>
+                    <table style="width:100%; border-collapse:collapse; font-size:10.5px; page-break-inside:auto;">
+                        <thead>
+                            <tr style="background-color:#1e293b; color:#ffffff;">
+                                <th style="border:1px solid #0f172a; padding:5px 4px; text-align:center; width:4%;">#</th>
+                                <th style="border:1px solid #0f172a; padding:5px 8px; text-align:left; width:18%;">Customer</th>
+                                <th style="border:1px solid #0f172a; padding:5px 4px; text-align:center; width:8%;">Roll Qty</th>
+                                <th style="border:1px solid #0f172a; padding:5px 8px; text-align:left; width:18%;">Item Name</th>
+                                <th style="border:1px solid #0f172a; padding:5px 4px; text-align:right; width:11%;">Qty</th>
+                                <th style="border:1px solid #0f172a; padding:5px 4px; text-align:center; width:7%;">Unit</th>
+                                <th style="border:1px solid #0f172a; padding:5px 4px; text-align:right; width:10%;">Rate</th>
+                                <th style="border:1px solid #0f172a; padding:5px 8px; text-align:right; width:12%;">Total</th>
+                                <th style="border:1px solid #0f172a; padding:5px 8px; text-align:left; width:12%;">Note</th>
+                            </tr>
+                        </thead>
+                        <tbody>${saleRowsHtml}</tbody>
+                        <tfoot>
+                            <tr style="background:#f1f5f9; font-weight:700;">
+                                <td colspan="2" style="border:1px solid #94a3b8; padding:6px 8px; text-align:right;">Total Sale</td>
+                                <td style="border:1px solid #94a3b8; padding:6px 4px; text-align:center;">${this.totalSaleRollQty || 0}</td>
+                                <td style="border:1px solid #94a3b8; padding:6px 8px;"></td>
+                                <td style="border:1px solid #94a3b8; padding:6px 4px; text-align:right;">${this.totalSaleMeterQty || 0}</td>
+                                <td colspan="2" style="border:1px solid #94a3b8; padding:6px 8px;"></td>
+                                <td style="border:1px solid #94a3b8; padding:6px 8px; text-align:right; font-size:11.5px; color:#166534;">${this.totalSale.toFixed(2)}</td>
+                                <td style="border:1px solid #94a3b8; padding:6px 8px;"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                ${cashinSection}
+                ${cashoutSection}
+                ${expensesSection}
+
+                <!-- CALCULATION SUMMARY -->
+                <div style="page-break-inside:avoid; margin-top:14px; max-width:450px; margin-left:auto;">
+                    <table style="width:100%; border-collapse:collapse; font-size:11px; border:1.5px solid #334155;">
+                        <thead>
+                            <tr style="background:#1e293b; color:#fff;">
+                                <th colspan="2" style="padding:6px 10px; text-align:center; font-size:12px; font-weight:700;">
+                                    CURRENT DAY TOTAL BALANCE
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom:1px solid #cbd5e1;">
+                                <td style="padding:5px 10px; color:#334155;">Last Working Day Total Balance</td>
+                                <td style="padding:5px 10px; text-align:right; font-weight:600;">${lastBalStr}</td>
+                            </tr>
+                            <tr style="border-bottom:1px solid #cbd5e1; background:#f0fdf4;">
+                                <td style="padding:5px 10px; color:#166534; font-weight:600;">+ Sale</td>
+                                <td style="padding:5px 10px; text-align:right; font-weight:700; color:#166534;">${this.totalSale.toFixed(2)}</td>
+                            </tr>
+                            <tr style="border-bottom:1px solid #cbd5e1; background:#f0fdf4;">
+                                <td style="padding:5px 10px; color:#166534; font-weight:600;">+ Cash In</td>
+                                <td style="padding:5px 10px; text-align:right; font-weight:700; color:#166534;">${this.totalCashin.toFixed(2)}</td>
+                            </tr>
+                            <tr style="border-bottom:1px solid #94a3b8; background:#f8fafc; font-weight:700;">
+                                <td style="padding:6px 10px; color:#0f172a;">= Sub Total</td>
+                                <td style="padding:6px 10px; text-align:right; color:#0f172a;">${this.subTotal.toFixed(2)}</td>
+                            </tr>
+                            <tr style="border-bottom:1px solid #cbd5e1; color:#991b1b;">
+                                <td style="padding:5px 10px;">− Cash Out</td>
+                                <td style="padding:5px 10px; text-align:right; font-weight:600;">${this.totalCashout.toFixed(2)}</td>
+                            </tr>
+                            <tr style="border-bottom:1px solid #cbd5e1; color:#991b1b;">
+                                <td style="padding:5px 10px;">− Shop Expense</td>
+                                <td style="padding:5px 10px; text-align:right; font-weight:600;">${this.totalShopexp.toFixed(2)}</td>
+                            </tr>
+                            <tr style="border-bottom:1.5px solid #334155; color:#991b1b;">
+                                <td style="padding:5px 10px;">− Home Expense</td>
+                                <td style="padding:5px 10px; text-align:right; font-weight:600;">${this.totalHomeexp.toFixed(2)}</td>
+                            </tr>
+                            <tr style="background:#2c7a4b; color:#ffffff; font-size:13px; font-weight:800;">
+                                <td style="padding:8px 10px;">Current Day Total Balance</td>
+                                <td style="padding:8px 10px; text-align:right;">${this.currentDayBalance.toFixed(2)}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    }
+
     printSheet() {
-        window.print();
+        let iframe = document.getElementById('cleanPrintIframe');
+        if (!iframe) {
+            iframe = document.createElement('iframe');
+            iframe.id = 'cleanPrintIframe';
+            iframe.style.position = 'fixed';
+            iframe.style.right = '0';
+            iframe.style.bottom = '0';
+            iframe.style.width = '0';
+            iframe.style.height = '0';
+            iframe.style.border = '0';
+            document.body.appendChild(iframe);
+        }
+        const doc = iframe.contentWindow.document;
+        doc.open();
+        doc.write(`
+            <!DOCTYPE html>
+            <html>
+                <head>
+                    <meta charset="utf-8">
+                    <title>Daily Sale Sheet - ${this.state.date}</title>
+                    <style>
+                        @page { size: A4 portrait; margin: 8mm; }
+                        body { margin: 0; padding: 0; background: #ffffff; }
+                    </style>
+                </head>
+                <body>
+                    ${this.generateCleanReportHtml()}
+                </body>
+            </html>
+        `);
+        doc.close();
+        setTimeout(() => {
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
+        }, 250);
     }
 
     async ensureHtml2Pdf() {
@@ -1120,14 +1482,7 @@ export class DailySaleSheetComponent extends Component {
     async downloadPDF() {
         const loaded = await this.ensureHtml2Pdf();
         if (!loaded) {
-            if (this.notification) this.notification.add("Opening print dialog...", { type: "info" });
-            window.print();
-            return;
-        }
-
-        const reportEl = document.getElementById('cleanPrintReport');
-        if (!reportEl) {
-            window.print();
+            this.printSheet();
             return;
         }
 
@@ -1135,37 +1490,91 @@ export class DailySaleSheetComponent extends Component {
             this.notification.add("Generating Clean Salesheet PDF...", { type: "info" });
         }
 
-        const clone = reportEl.cloneNode(true);
-        clone.id = 'cleanPrintReportClone';
-        clone.style.display = 'block';
-        clone.style.position = 'fixed';
-        clone.style.top = '-99999px';
-        clone.style.left = '0';
-        clone.style.width = '794px';
-        clone.style.background = '#ffffff';
-        clone.style.color = '#000000';
-        document.body.appendChild(clone);
+        // Visible rendering overlay in viewport so html2canvas renders with positive bounds (NOT blank!)
+        const overlay = document.createElement('div');
+        overlay.id = 'cleanPdfExportOverlay';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.85);
+            z-index: 999999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            overflow-y: auto;
+            padding: 30px 10px;
+            box-sizing: border-box;
+        `;
+
+        const badge = document.createElement('div');
+        badge.style.cssText = `
+            background: #ffffff;
+            color: #0f172a;
+            padding: 10px 24px;
+            border-radius: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        `;
+        badge.innerHTML = `<span class="spinner-border spinner-border-sm text-primary" role="status"></span> Generating Clean Salesheet PDF... Please wait`;
+        overlay.appendChild(badge);
+
+        const reportContainer = document.createElement('div');
+        reportContainer.id = 'cleanPdfContentToCapture';
+        reportContainer.style.cssText = `
+            width: 794px;
+            max-width: 100%;
+            background: #ffffff;
+            color: #000000;
+            padding: 24px;
+            border-radius: 6px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-sizing: border-box;
+        `;
+        reportContainer.innerHTML = this.generateCleanReportHtml();
+        overlay.appendChild(reportContainer);
+
+        document.body.appendChild(overlay);
+
+        // Wait 250ms for the browser layout engine to paint tables, borders, and typography
+        await new Promise(resolve => setTimeout(resolve, 250));
 
         const opt = {
-            margin: [0.25, 0.25, 0.25, 0.25],
+            margin: [0.3, 0.3, 0.3, 0.3],
             filename: `Daily_Sale_Sheet_${this.state.date}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true, logging: false },
+            html2canvas: {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                scrollX: 0,
+                scrollY: 0,
+                windowWidth: 800,
+                backgroundColor: '#ffffff'
+            },
             jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
             pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
         };
 
         try {
-            await html2pdf().set(opt).from(clone).save();
+            await html2pdf().set(opt).from(reportContainer).save();
             if (this.notification) {
                 this.notification.add("Clean Salesheet PDF Downloaded Successfully!", { type: "success" });
             }
         } catch (err) {
             console.error("PDF download failed", err);
-            window.print();
+            this.printSheet();
         } finally {
-            if (clone.parentNode) {
-                clone.parentNode.removeChild(clone);
+            if (overlay.parentNode) {
+                overlay.parentNode.removeChild(overlay);
             }
         }
     }
@@ -1173,14 +1582,7 @@ export class DailySaleSheetComponent extends Component {
     async shareToWhatsApp() {
         const loaded = await this.ensureHtml2Pdf();
         if (!loaded) {
-            if (this.notification) this.notification.add("Failed to load PDF generator. Using Print dialog instead.", { type: "warning" });
-            window.print();
-            return;
-        }
-
-        const reportEl = document.getElementById('cleanPrintReport');
-        if (!reportEl) {
-            window.print();
+            this.printSheet();
             return;
         }
 
@@ -1188,36 +1590,89 @@ export class DailySaleSheetComponent extends Component {
             this.notification.add("Generating Clean PDF for WhatsApp...", { type: "info" });
         }
 
-        const clone = reportEl.cloneNode(true);
-        clone.id = 'cleanPrintReportCloneWA';
-        clone.style.display = 'block';
-        clone.style.position = 'fixed';
-        clone.style.top = '-99999px';
-        clone.style.left = '0';
-        clone.style.width = '794px';
-        clone.style.background = '#ffffff';
-        clone.style.color = '#000000';
-        document.body.appendChild(clone);
+        const overlay = document.createElement('div');
+        overlay.id = 'cleanPdfExportOverlayWA';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.85);
+            z-index: 999999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            overflow-y: auto;
+            padding: 30px 10px;
+            box-sizing: border-box;
+        `;
+
+        const badge = document.createElement('div');
+        badge.style.cssText = `
+            background: #ffffff;
+            color: #0f172a;
+            padding: 10px 24px;
+            border-radius: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        `;
+        badge.innerHTML = `<span class="spinner-border spinner-border-sm text-primary" role="status"></span> Preparing PDF for WhatsApp...`;
+        overlay.appendChild(badge);
+
+        const reportContainer = document.createElement('div');
+        reportContainer.id = 'cleanPdfContentToCaptureWA';
+        reportContainer.style.cssText = `
+            width: 794px;
+            max-width: 100%;
+            background: #ffffff;
+            color: #000000;
+            padding: 24px;
+            border-radius: 6px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-sizing: border-box;
+        `;
+        reportContainer.innerHTML = this.generateCleanReportHtml();
+        overlay.appendChild(reportContainer);
+
+        document.body.appendChild(overlay);
+
+        await new Promise(resolve => setTimeout(resolve, 250));
 
         const opt = {
-            margin: [0.25, 0.25, 0.25, 0.25],
+            margin: [0.3, 0.3, 0.3, 0.3],
             filename: `Daily_Sale_Sheet_${this.state.date}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true, logging: false },
+            html2canvas: {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                scrollX: 0,
+                scrollY: 0,
+                windowWidth: 800,
+                backgroundColor: '#ffffff'
+            },
             jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
             pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
         };
 
         const triggerFallback = (pdfBlob, filename) => {
-            const url = URL.createObjectURL(pdfBlob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            URL.revokeObjectURL(url);
-            
+            if (pdfBlob) {
+                const url = URL.createObjectURL(pdfBlob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                URL.revokeObjectURL(url);
+            }
             if (this.notification) {
                 this.notification.add("PDF Downloaded! Please attach it in WhatsApp manually.", { type: "success" });
             }
@@ -1226,7 +1681,7 @@ export class DailySaleSheetComponent extends Component {
         };
 
         try {
-            const pdfBlob = await html2pdf().set(opt).from(clone).outputPdf('blob');
+            const pdfBlob = await html2pdf().set(opt).from(reportContainer).outputPdf('blob');
             const file = new File([pdfBlob], opt.filename, { type: 'application/pdf' });
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             
@@ -1243,8 +1698,8 @@ export class DailySaleSheetComponent extends Component {
             console.error("PDF generation failed", err);
             triggerFallback(null, opt.filename);
         } finally {
-            if (clone.parentNode) {
-                clone.parentNode.removeChild(clone);
+            if (overlay.parentNode) {
+                overlay.parentNode.removeChild(overlay);
             }
         }
     }
