@@ -265,15 +265,64 @@ export class DailySaleSheetComponent extends Component {
         }
     }
 
+    async prevDate() {
+        await this.changeDate(-1);
+    }
+
+    async nextDate() {
+        await this.changeDate(1);
+    }
+
+    async goToToday() {
+        const today = new Date().toISOString().split('T')[0];
+        if (this.state.date !== today) {
+            if (this.state.saveStatus === 'unsaved') {
+                await this.saveSheetSilently();
+            }
+            this.state.date = today;
+            globalLastSelectedDate = this.state.date;
+            await this.loadSheetByDate(this.state.date);
+        }
+    }
+
+    async changeDate(offsetDays) {
+        if (this.state.saveStatus === 'unsaved') {
+            await this.saveSheetSilently();
+        }
+        const curDateStr = this.state.date || new Date().toISOString().split('T')[0];
+        const parts = curDateStr.split('-');
+        let dt;
+        if (parts.length === 3) {
+            const [y, m, d] = parts.map(Number);
+            dt = new Date(y, m - 1, d);
+        } else {
+            dt = new Date();
+        }
+        dt.setDate(dt.getDate() + offsetDays);
+        const year = dt.getFullYear();
+        const month = String(dt.getMonth() + 1).padStart(2, '0');
+        const day = String(dt.getDate()).padStart(2, '0');
+        this.state.date = `${year}-${month}-${day}`;
+        globalLastSelectedDate = this.state.date;
+        await this.loadSheetByDate(this.state.date);
+    }
+
     async onDateChange(ev) {
+        if (this.state.saveStatus === 'unsaved') {
+            await this.saveSheetSilently();
+        }
         this.state.date = ev.target.value;
         globalLastSelectedDate = this.state.date;
         await this.loadSheetByDate(this.state.date);
     }
 
     formatVal(val) {
-        const num = parseFloat(val);
-        return (isNaN(num) ? 0 : num).toFixed(2).replace(/\.00$/, '');
+        if (val === '' || val === null || val === undefined) return '0';
+        const cleanVal = typeof val === 'string' ? val.replace(/,/g, '') : val;
+        const num = parseFloat(cleanVal);
+        if (isNaN(num)) return '0';
+        const str = num.toFixed(2);
+        return str.endsWith('.00') ? str.slice(0, -3) : str;
     }
 
     getCustomerBalance(nameStr) {
@@ -287,7 +336,7 @@ export class DailySaleSheetComponent extends Component {
         }
         const cust = (this.state.customers || []).find(c => c.name === cName);
         if (cust && cust.current_net_balance !== undefined) {
-            return parseFloat(cust.current_net_balance).toFixed(2).replace(/\.00$/, '');
+            return this.formatVal(cust.current_net_balance);
         }
         return null;
     }
@@ -296,7 +345,7 @@ export class DailySaleSheetComponent extends Component {
         if (!nameStr) return null;
         const prod = (this.state.products || []).find(p => p.name === nameStr);
         if (prod && prod.quantity !== undefined) {
-            return parseFloat(prod.quantity).toFixed(2).replace(/\.00$/, '');
+            return this.formatVal(prod.quantity);
         }
         return null;
     }
@@ -587,7 +636,7 @@ export class DailySaleSheetComponent extends Component {
 
     get tempRollTotalMeters() {
         const sum = (this.state.tempRollMeters || []).reduce((acc, m) => acc + (parseFloat(m) || 0), 0);
-        return sum.toFixed(2);
+        return this.formatVal(sum);
     }
 
     addRollToBreakdown() {
@@ -748,7 +797,7 @@ export class DailySaleSheetComponent extends Component {
         const q = parseFloat(line.qty);
         const p = parseFloat(line.price);
         if (!isNaN(q) && !isNaN(p) && q > 0 && p > 0) {
-            line.total = (q * p).toFixed(2);
+            line.total = this.formatVal(q * p);
         } else {
             line.total = '';
         }
@@ -1173,7 +1222,7 @@ export class DailySaleSheetComponent extends Component {
                         <tfoot>
                             <tr style="background:#f0fdf4; font-weight:700;">
                                 <td colspan="3" style="border:1px solid #86efac; padding:6px 8px; text-align:right;">Total Cash In</td>
-                                <td style="border:1px solid #86efac; padding:6px 8px; text-align:right; font-size:11.5px; color:#166534;">${this.totalCashin.toFixed(2)}</td>
+                                <td style="border:1px solid #86efac; padding:6px 8px; text-align:right; font-size:11.5px; color:#166534;">${this.formatVal(this.totalCashin)}</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -1196,7 +1245,7 @@ export class DailySaleSheetComponent extends Component {
                         <td style="border:1px solid #cbd5e1; padding:5px 4px; text-align:center;">${idx + 1}</td>
                         <td style="border:1px solid #cbd5e1; padding:5px 8px; text-align:left; font-weight:600;">${l.customer_name || '-'}</td>
                         <td style="border:1px solid #cbd5e1; padding:5px 8px; text-align:left; color:#334155;">${l.note || '-'}</td>
-                        <td style="border:1px solid #cbd5e1; padding:5px 8px; text-align:right; font-weight:700; color:#991b1b;">${l.money || '0'}</td>
+                        <td style="border:1px solid #cbd5e1; padding:5px 8px; text-align:right; font-weight:700; color:#991b1b;">${this.formatVal(l.money)}</td>
                     </tr>
                 `;
             });
@@ -1218,7 +1267,7 @@ export class DailySaleSheetComponent extends Component {
                         <tfoot>
                             <tr style="background:#fef2f2; font-weight:700;">
                                 <td colspan="3" style="border:1px solid #fca5a5; padding:6px 8px; text-align:right;">Total Cash Out</td>
-                                <td style="border:1px solid #fca5a5; padding:6px 8px; text-align:right; font-size:11.5px; color:#991b1b;">${this.totalCashout.toFixed(2)}</td>
+                                <td style="border:1px solid #fca5a5; padding:6px 8px; text-align:right; font-size:11.5px; color:#991b1b;">${this.formatVal(this.totalCashout)}</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -1239,7 +1288,7 @@ export class DailySaleSheetComponent extends Component {
                         <tr style="border-bottom:1px solid #e2e8f0;">
                             <td style="padding:4px; text-align:center;">${idx + 1}</td>
                             <td style="padding:4px 6px; text-align:left;">${l.note || '-'}</td>
-                            <td style="padding:4px 6px; text-align:right; font-weight:600;">${l.money || '0'}</td>
+                            <td style="padding:4px 6px; text-align:right; font-weight:600;">${this.formatVal(l.money)}</td>
                         </tr>
                     `;
                 });
@@ -1260,7 +1309,7 @@ export class DailySaleSheetComponent extends Component {
                             <tfoot>
                                 <tr style="background:#fefce8; font-weight:700;">
                                     <td colspan="2" style="padding:5px 6px; text-align:right;">Total:</td>
-                                    <td style="padding:5px 6px; text-align:right;">${this.totalShopexp.toFixed(2)}</td>
+                                    <td style="padding:5px 6px; text-align:right;">${this.formatVal(this.totalShopexp)}</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -1276,7 +1325,7 @@ export class DailySaleSheetComponent extends Component {
                         <tr style="border-bottom:1px solid #e2e8f0;">
                             <td style="padding:4px; text-align:center;">${idx + 1}</td>
                             <td style="padding:4px 6px; text-align:left;">${l.note || '-'}</td>
-                            <td style="padding:4px 6px; text-align:right; font-weight:600;">${l.money || '0'}</td>
+                            <td style="padding:4px 6px; text-align:right; font-weight:600;">${this.formatVal(l.money)}</td>
                         </tr>
                     `;
                 });
@@ -1297,7 +1346,7 @@ export class DailySaleSheetComponent extends Component {
                             <tfoot>
                                 <tr style="background:#faf5ff; font-weight:700;">
                                     <td colspan="2" style="padding:5px 6px; text-align:right;">Total:</td>
-                                    <td style="padding:5px 6px; text-align:right;">${this.totalHomeexp.toFixed(2)}</td>
+                                    <td style="padding:5px 6px; text-align:right;">${this.formatVal(this.totalHomeexp)}</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -1359,11 +1408,11 @@ export class DailySaleSheetComponent extends Component {
                         <tfoot>
                             <tr style="background:#f1f5f9; font-weight:700;">
                                 <td colspan="2" style="border:1px solid #94a3b8; padding:6px 8px; text-align:right;">Total Sale</td>
-                                <td style="border:1px solid #94a3b8; padding:6px 4px; text-align:center;">${this.totalSaleRollQty || 0}</td>
+                                <td style="border:1px solid #94a3b8; padding:6px 4px; text-align:center;">${this.formatVal(this.totalSaleRollQty)}</td>
                                 <td style="border:1px solid #94a3b8; padding:6px 8px;"></td>
-                                <td style="border:1px solid #94a3b8; padding:6px 4px; text-align:right;">${this.totalSaleMeterQty || 0}</td>
+                                <td style="border:1px solid #94a3b8; padding:6px 4px; text-align:right;">${this.formatVal(this.totalSaleMeterQty)}</td>
                                 <td colspan="2" style="border:1px solid #94a3b8; padding:6px 8px;"></td>
-                                <td style="border:1px solid #94a3b8; padding:6px 8px; text-align:right; font-size:11.5px; color:#166534;">${this.totalSale.toFixed(2)}</td>
+                                <td style="border:1px solid #94a3b8; padding:6px 8px; text-align:right; font-size:11.5px; color:#166534;">${this.formatVal(this.totalSale)}</td>
                                 <td style="border:1px solid #94a3b8; padding:6px 8px;"></td>
                             </tr>
                         </tfoot>
@@ -1391,31 +1440,31 @@ export class DailySaleSheetComponent extends Component {
                             </tr>
                             <tr style="border-bottom:1px solid #cbd5e1; background:#f0fdf4;">
                                 <td style="padding:5px 10px; color:#166534; font-weight:600;">+ Sale</td>
-                                <td style="padding:5px 10px; text-align:right; font-weight:700; color:#166534;">${this.totalSale.toFixed(2)}</td>
+                                <td style="padding:5px 10px; text-align:right; font-weight:700; color:#166534;">${this.formatVal(this.totalSale)}</td>
                             </tr>
                             <tr style="border-bottom:1px solid #cbd5e1; background:#f0fdf4;">
                                 <td style="padding:5px 10px; color:#166534; font-weight:600;">+ Cash In</td>
-                                <td style="padding:5px 10px; text-align:right; font-weight:700; color:#166534;">${this.totalCashin.toFixed(2)}</td>
+                                <td style="padding:5px 10px; text-align:right; font-weight:700; color:#166534;">${this.formatVal(this.totalCashin)}</td>
                             </tr>
                             <tr style="border-bottom:1px solid #94a3b8; background:#f8fafc; font-weight:700;">
                                 <td style="padding:6px 10px; color:#0f172a;">= Sub Total</td>
-                                <td style="padding:6px 10px; text-align:right; color:#0f172a;">${this.subTotal.toFixed(2)}</td>
+                                <td style="padding:6px 10px; text-align:right; color:#0f172a;">${this.formatVal(this.subTotal)}</td>
                             </tr>
                             <tr style="border-bottom:1px solid #cbd5e1; color:#991b1b;">
                                 <td style="padding:5px 10px;">− Cash Out</td>
-                                <td style="padding:5px 10px; text-align:right; font-weight:600;">${this.totalCashout.toFixed(2)}</td>
+                                <td style="padding:5px 10px; text-align:right; font-weight:600;">${this.formatVal(this.totalCashout)}</td>
                             </tr>
                             <tr style="border-bottom:1px solid #cbd5e1; color:#991b1b;">
                                 <td style="padding:5px 10px;">− Shop Expense</td>
-                                <td style="padding:5px 10px; text-align:right; font-weight:600;">${this.totalShopexp.toFixed(2)}</td>
+                                <td style="padding:5px 10px; text-align:right; font-weight:600;">${this.formatVal(this.totalShopexp)}</td>
                             </tr>
                             <tr style="border-bottom:1.5px solid #334155; color:#991b1b;">
                                 <td style="padding:5px 10px;">− Home Expense</td>
-                                <td style="padding:5px 10px; text-align:right; font-weight:600;">${this.totalHomeexp.toFixed(2)}</td>
+                                <td style="padding:5px 10px; text-align:right; font-weight:600;">${this.formatVal(this.totalHomeexp)}</td>
                             </tr>
                             <tr style="background:#2c7a4b; color:#ffffff; font-size:13px; font-weight:800;">
                                 <td style="padding:8px 10px;">Current Day Total Balance</td>
-                                <td style="padding:8px 10px; text-align:right;">${this.currentDayBalance.toFixed(2)}</td>
+                                <td style="padding:8px 10px; text-align:right;">${this.formatVal(this.currentDayBalance)}</td>
                             </tr>
                         </tbody>
                     </table>

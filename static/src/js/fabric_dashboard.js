@@ -124,6 +124,24 @@ export class FabricDashboard extends Component {
         await this.loadDashboardData();
     }
 
+    async changeSelectedDate(offsetDays) {
+        const curDateStr = this.state.selectedDate || new Date().toISOString().split('T')[0];
+        const parts = curDateStr.split('-');
+        let dt;
+        if (parts.length === 3) {
+            const [y, m, d] = parts.map(Number);
+            dt = new Date(y, m - 1, d);
+        } else {
+            dt = new Date();
+        }
+        dt.setDate(dt.getDate() + offsetDays);
+        const year = dt.getFullYear();
+        const month = String(dt.getMonth() + 1).padStart(2, '0');
+        const day = String(dt.getDate()).padStart(2, '0');
+        this.state.selectedDate = `${year}-${month}-${day}`;
+        await this.onFilterValueChange();
+    }
+
     formatNum(num) {
         if (num === undefined || num === null) return "0";
         return Number(num).toLocaleString('en-IN').replace(/[^0-9.,-]/g, '').trim();
