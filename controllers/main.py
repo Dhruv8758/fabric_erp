@@ -642,6 +642,7 @@ class FabricErpController(http.Controller):
             })
 
         products = request.env['fabric.product'].sudo().search_read([], ['id', 'name', 'code', 'unit', 'price_per_unit', 'quantity'])
+        customers = request.env['fabric.customer'].sudo().search_read([], ['id', 'name', 'phone', 'current_net_balance'])
         saved_sale_lines = [{
             'id': l.id,
             'customer_name': l.customer_name or '',
@@ -658,7 +659,8 @@ class FabricErpController(http.Controller):
             'write_time': write_time,
             'history_logs': history_logs,
             'sale_lines_data': saved_sale_lines,
-            'products': products
+            'products': products,
+            'customers': customers
         }
 
     @http.route('/fabric_erp/delete_sale_line', type='json', auth='user')

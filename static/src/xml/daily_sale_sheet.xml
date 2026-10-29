@@ -416,7 +416,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <t t-foreach="state.saleLines" t-as="line" t-key="line.id">
+                                <t t-foreach="state.saleLines" t-as="line" t-key="line._uid || line.id">
                                     <tr t-att-style="line.create_uid and line.create_uid === state.current_uid ? 'background-color: #f0f8ff;' : ''">
                                         <td>
                                             <t t-esc="line_index + 1"/>
@@ -446,7 +446,7 @@
                                             </t>
                                             <t t-if="line.is_custom_customer">
                                                 <div class="input-group input-group-sm">
-                                                    <input type="text" class="form-control text-start border-primary" t-model="line.customer_name" t-on-input="() => this.onCustomerInput(line)" t-on-change="() => this.onCustomerChange(line)" placeholder="Enter New Customer Name"/>
+                                                    <input type="text" class="form-control text-start border-primary" t-model="line.customer_name" t-on-input="() => this.onCustomerInput(line)" t-on-change="() => this.onCustomerChange(line)" t-on-keydown="(ev) => ev.key === 'Enter' and this.saveCustomCustomer(line)" placeholder="Enter New Customer Name"/>
                                                     <button class="btn btn-success py-0 px-2 fw-bold" t-on-click="() => this.saveCustomCustomer(line)" title="Save Customer">✓</button>
                                                     <button class="btn btn-outline-secondary py-0 px-2" t-on-click="() => this.cancelCustomCustomer(line)" title="Back to list">✕</button>
                                                 </div>
@@ -471,7 +471,7 @@
                                             </t>
                                             <t t-if="line.is_custom_item">
                                                 <div class="input-group input-group-sm">
-                                                    <input type="text" class="form-control text-start border-primary" t-model="line.item_name" t-on-input="(ev) => this.onSelectItemName(line, ev)" t-on-change="(ev) => this.onItemChange(line, ev)" placeholder="Enter New Product Name"/>
+                                                    <input type="text" class="form-control text-start border-primary" t-model="line.item_name" t-on-input="(ev) => this.onSelectItemName(line, ev)" t-on-change="(ev) => this.onItemChange(line, ev)" t-on-keydown="(ev) => ev.key === 'Enter' and this.saveCustomItem(line)" placeholder="Enter New Product Name"/>
                                                     <button class="btn btn-success py-0 px-2 fw-bold" t-on-click="() => this.saveCustomItem(line)" title="Save Product">✓</button>
                                                     <button class="btn btn-outline-secondary py-0 px-2" t-on-click="() => this.cancelCustomItem(line)" title="Back to list">✕</button>
                                                 </div>
@@ -552,7 +552,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <t t-foreach="state.cashinLines" t-as="line" t-key="line.id">
+                                <t t-foreach="state.cashinLines" t-as="line" t-key="line._uid || line.id">
                                     <tr t-att-style="line.create_uid and line.create_uid === state.current_uid ? 'background-color: #f0f8ff;' : ''">
                                         <td>
                                             <t t-esc="line_index + 1"/>
@@ -574,12 +574,15 @@
                                                     <t t-foreach="state.customers || []" t-as="c" t-key="c.id || c.name">
                                                         <option t-att-value="c.name" t-esc="c.name"/>
                                                     </t>
+                                                    <t t-if="line.customer_name &amp;&amp; !state.customers.some(c => c.name === line.customer_name) &amp;&amp; line.customer_name !== '__new__'">
+                                                        <option t-att-value="line.customer_name" t-esc="line.customer_name"/>
+                                                    </t>
                                                     <option value="__new__" class="fw-bold text-primary">➕ Add New Customer...</option>
                                                 </select>
                                             </t>
                                             <t t-if="line.is_custom_customer">
                                                 <div class="input-group input-group-sm">
-                                                    <input type="text" class="form-control text-start border-primary" t-model="line.customer_name" t-on-input="() => this.onCashinInput(line)" t-on-change="() => this.onCashinChange(line)" placeholder="Enter Customer Name"/>
+                                                    <input type="text" class="form-control text-start border-primary" t-model="line.customer_name" t-on-input="() => this.onCashinInput(line)" t-on-change="() => this.onCashinChange(line)" t-on-keydown="(ev) => ev.key === 'Enter' and this.saveCustomCashinCustomer(line)" placeholder="Enter Customer Name"/>
                                                     <button class="btn btn-success py-0 px-2 fw-bold" t-on-click="() => this.saveCustomCashinCustomer(line)" title="Save Customer">✓</button>
                                                     <button class="btn btn-outline-secondary py-0 px-2" t-on-click="() => this.cancelCustomCashin(line)" title="Back to list">✕</button>
                                                 </div>
@@ -643,7 +646,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <t t-foreach="state.cashoutLines" t-as="line" t-key="line.id">
+                                <t t-foreach="state.cashoutLines" t-as="line" t-key="line._uid || line.id">
                                     <tr t-att-style="line.create_uid and line.create_uid === state.current_uid ? 'background-color: #f0f8ff;' : ''">
                                         <td>
                                             <t t-esc="line_index + 1"/>
@@ -665,6 +668,9 @@
                                                     <t t-foreach="state.customers || []" t-as="c" t-key="c.id || c.name">
                                                         <option t-att-value="c.name" t-esc="c.name"/>
                                                     </t>
+                                                    <t t-if="line.customer_name &amp;&amp; !state.customers.some(c => c.name === line.customer_name) &amp;&amp; line.customer_name !== '__new__'">
+                                                        <option t-att-value="line.customer_name" t-esc="line.customer_name"/>
+                                                    </t>
                                                     <option value="__new__" class="fw-bold text-primary">➕ Add New Customer...</option>
                                                 </select>
                                             </t>
@@ -675,7 +681,7 @@
                                                             <i class="fa fa-shopping-cart me-1"></i>Unpaid
                                                         </span>
                                                     </t>
-                                                    <input type="text" class="form-control text-start border-primary" t-model="line.customer_name" t-on-input="() => this.onCashoutInput(line)" t-on-change="() => this.onCashoutChange(line)" placeholder="Enter Customer Name"/>
+                                                    <input type="text" class="form-control text-start border-primary" t-model="line.customer_name" t-on-input="() => this.onCashoutInput(line)" t-on-change="() => this.onCashoutChange(line)" t-on-keydown="(ev) => ev.key === 'Enter' and this.saveCustomCashoutCustomer(line)" placeholder="Enter Customer Name"/>
                                                     <t t-if="!(line.syncedSaleId)">
                                                         <button class="btn btn-success py-0 px-2 fw-bold" t-on-click="() => this.saveCustomCashoutCustomer(line)" title="Save Customer">✓</button>
                                                         <button class="btn btn-outline-secondary py-0 px-2" t-on-click="() => this.cancelCustomCashout(line)" title="Back to list">✕</button>
@@ -739,7 +745,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <t t-foreach="state.shopexpLines" t-as="line" t-key="line.id">
+                                <t t-foreach="state.shopexpLines" t-as="line" t-key="line._uid || line.id">
                                     <tr t-att-style="line.create_uid and line.create_uid === state.current_uid ? 'background-color: #f0f8ff;' : ''">
                                         <td>
                                             <t t-esc="line_index + 1"/>
@@ -795,7 +801,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <t t-foreach="state.homeexpLines" t-as="line" t-key="line.id">
+                                <t t-foreach="state.homeexpLines" t-as="line" t-key="line._uid || line.id">
                                     <tr t-att-style="line.create_uid and line.create_uid === state.current_uid ? 'background-color: #f0f8ff;' : ''">
                                         <td>
                                             <t t-esc="line_index + 1"/>
@@ -1002,7 +1008,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <t t-foreach="validSaleLines" t-as="line" t-key="line.id">
+                                <t t-foreach="validSaleLines" t-as="line" t-key="line._uid || line.id">
                                     <tr style="page-break-inside: avoid; border-bottom: 1px solid #cbd5e1;">
                                         <td style="border: 1px solid #cbd5e1; padding: 5px 4px; text-align: center;"><t t-esc="line_index + 1"/></td>
                                         <td style="border: 1px solid #cbd5e1; padding: 5px 6px; text-align: left; font-weight: 600; color: #0f172a;">
@@ -1059,7 +1065,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <t t-foreach="validCashinLines" t-as="line" t-key="line.id">
+                                <t t-foreach="validCashinLines" t-as="line" t-key="line._uid || line.id">
                                     <tr style="page-break-inside: avoid; border-bottom: 1px solid #cbd5e1;">
                                         <td style="border: 1px solid #cbd5e1; padding: 5px 4px; text-align: center;"><t t-esc="line_index + 1"/></td>
                                         <td style="border: 1px solid #cbd5e1; padding: 5px 6px; text-align: left; font-weight: 600;"><t t-esc="line.customer_name || '-'"/></td>
@@ -1094,7 +1100,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <t t-foreach="validCashoutLines" t-as="line" t-key="line.id">
+                                <t t-foreach="validCashoutLines" t-as="line" t-key="line._uid || line.id">
                                     <tr style="page-break-inside: avoid; border-bottom: 1px solid #cbd5e1;">
                                         <td style="border: 1px solid #cbd5e1; padding: 5px 4px; text-align: center;"><t t-esc="line_index + 1"/></td>
                                         <td style="border: 1px solid #cbd5e1; padding: 5px 6px; text-align: left; font-weight: 600;"><t t-esc="line.customer_name || '-'"/></td>
@@ -1129,7 +1135,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <t t-foreach="validShopexpLines" t-as="line" t-key="line.id">
+                                    <t t-foreach="validShopexpLines" t-as="line" t-key="line._uid || line.id">
                                         <tr style="border-bottom: 1px solid #e2e8f0;">
                                             <td style="padding: 4px; text-align: center;"><t t-esc="line_index + 1"/></td>
                                             <td style="padding: 4px 6px; text-align: left;"><t t-esc="line.note || '-'"/></td>
@@ -1161,7 +1167,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <t t-foreach="validHomeexpLines" t-as="line" t-key="line.id">
+                                    <t t-foreach="validHomeexpLines" t-as="line" t-key="line._uid || line.id">
                                         <tr style="border-bottom: 1px solid #e2e8f0;">
                                             <td style="padding: 4px; text-align: center;"><t t-esc="line_index + 1"/></td>
                                             <td style="padding: 4px 6px; text-align: left;"><t t-esc="line.note || '-'"/></td>

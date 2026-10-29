@@ -25,19 +25,19 @@ export class DailySaleSheetComponent extends Component {
             customers: [],
             units: [],
             saleLines: [
-                { id: 1, customer_name: '', roll_qty: '', qty: '', item_name: '', unit: 'Meter', price: '', total: '', note: '', is_unpaid: false }
+                { _uid: 'row_init_sale_1', id: 1, customer_name: '', roll_qty: '', qty: '', item_name: '', unit: 'Meter', price: '', total: '', note: '', is_unpaid: false, is_custom_customer: false, is_custom_item: false }
             ],
             cashinLines: [
-                { id: 1, customer_name: '', note: '', money: '', is_khata: false }
+                { _uid: 'row_init_cashin_1', id: 1, customer_name: '', note: '', money: '', is_khata: false, is_custom_customer: false }
             ],
             cashoutLines: [
-                { id: 1, customer_name: '', note: '', money: '', is_khata: false }
+                { _uid: 'row_init_cashout_1', id: 1, customer_name: '', note: '', money: '', is_khata: false, is_custom_customer: false }
             ],
             shopexpLines: [
-                { id: 1, note: '', money: '' }
+                { _uid: 'row_init_shopexp_1', id: 1, note: '', money: '' }
             ],
             homeexpLines: [
-                { id: 1, note: '', money: '' }
+                { _uid: 'row_init_homeexp_1', id: 1, note: '', money: '' }
             ],
             showRollBreakdownModal: false,
             activeRollLine: null,
@@ -131,6 +131,16 @@ export class DailySaleSheetComponent extends Component {
 
     async loadSheetByDate(dateStr) {
         try {
+            // Refresh customer master list so any newly created customer in Customer Khata is immediately available
+            try {
+                const resCust = await rpc("/fabric_erp/get_customers");
+                if (resCust && resCust.length) {
+                    this.state.customers = resCust;
+                }
+            } catch (e) {
+                console.error("Failed to refresh customers", e);
+            }
+
             const data = await rpc("/fabric_erp/get_daily_sheet_by_date", { date_str: dateStr });
             const cleanZero = (val) => (val === 0 || val === '0' || val === 0.0 || !val) ? '' : val;
             if (data && data.exists) {
@@ -138,32 +148,34 @@ export class DailySaleSheetComponent extends Component {
                 this.state.lastBalance = cleanZero(data.last_balance);
                 this.state.saleLines = (data.saleLines || []).map(l => ({
                     ...l,
+                    _uid: 'row_sale_' + (l.id || (Date.now() + '_' + Math.random().toString(36).substring(2, 9))),
                     roll_qty: cleanZero(l.roll_qty),
                     qty: cleanZero(l.qty),
                     price: cleanZero(l.price),
-                    total: cleanZero(l.total)
+                    total: cleanZero(l.total),
+                    is_custom_customer: false,
+                    is_custom_item: false
                 }));
                 this.state.cashinLines = (data.cashinLines || []).map(l => ({
                     ...l,
-                    money: cleanZero(l.money)
+                    _uid: 'row_cashin_' + (l.id || (Date.now() + '_' + Math.random().toString(36).substring(2, 9))),
+                    money: cleanZero(l.money),
+                    is_custom_customer: false
                 }));
-                this.state.cashoutLines = (data.cashoutLines || []).map(l => {
-                    const noteStr = (l.note || '').trim();
-                    const isCustom = l.is_custom_customer !== undefined ? l.is_custom_customer : (
-                        noteStr.startsWith('Unpaid Sale:') || (noteStr && !this.state.customers.some(c => (c.name || '').toLowerCase() === noteStr.toLowerCase()))
-                    );
-                    return {
-                        ...l,
-                        money: cleanZero(l.money),
-                        is_custom_customer: isCustom
-                    };
-                });
+                this.state.cashoutLines = (data.cashoutLines || []).map(l => ({
+                    ...l,
+                    _uid: 'row_cashout_' + (l.id || (Date.now() + '_' + Math.random().toString(36).substring(2, 9))),
+                    money: cleanZero(l.money),
+                    is_custom_customer: false
+                }));
                 this.state.shopexpLines = (data.shopexpLines || []).map(l => ({
                     ...l,
+                    _uid: 'row_shopexp_' + (l.id || (Date.now() + '_' + Math.random().toString(36).substring(2, 9))),
                     money: cleanZero(l.money)
                 }));
                 this.state.homeexpLines = (data.homeexpLines || []).map(l => ({
                     ...l,
+                    _uid: 'row_homeexp_' + (l.id || (Date.now() + '_' + Math.random().toString(36).substring(2, 9))),
                     money: cleanZero(l.money)
                 }));
             } else if (data) {
@@ -446,8 +458,14 @@ export class DailySaleSheetComponent extends Component {
 
     onCustomerChange(line) {
         const val = (line.customer_name || '').trim();
-        if (val && !this.state.customers.some(c => (c.name || '').toLowerCase() === val.toLowerCase())) {
-            this.state.customers.push({ id: Date.now() + Math.random(), name: val });
+        if (val) {
+            const match = this.state.customers.find(c => (c.name || '').toLowerCase() === val.toLowerCase());
+            if (match) {
+                line.customer_name = match.name;
+                line.is_custom_customer = false;
+            } else if (!this.state.customers.some(c => (c.name || '').toLowerCase() === val.toLowerCase())) {
+                this.state.customers.push({ id: Date.now() + Math.random(), name: val });
+            }
         }
     }
 
@@ -512,16 +530,17 @@ export class DailySaleSheetComponent extends Component {
                 this.state.cashoutLines[existingIdx].customer_name = custName;
                 this.state.cashoutLines[existingIdx].note = noteText;
                 this.state.cashoutLines[existingIdx].money = totalMoney;
-                this.state.cashoutLines[existingIdx].is_custom_customer = true;
+                this.state.cashoutLines[existingIdx].is_custom_customer = false;
                 // Preserve the existing is_khata value instead of forcing it to true
             } else {
                 const newCashout = {
+                    _uid: 'row_cashout_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9),
                     id: Date.now() + Math.random(),
                     syncedSaleId: line.id,
                     customer_name: custName,
                     note: noteText,
                     money: totalMoney,
-                    is_custom_customer: true,
+                    is_custom_customer: false,
                     is_khata: false
                 };
                 const emptyIdx = this.state.cashoutLines.findIndex(c => !c.note && (!c.money || c.money === 0));
@@ -724,6 +743,7 @@ export class DailySaleSheetComponent extends Component {
     // Row Operations
     addSaleRow() {
         this.state.saleLines.push({
+            _uid: 'row_sale_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9),
             id: Date.now() + Math.random(),
             customer_name: '',
             roll_qty: '',
@@ -734,7 +754,9 @@ export class DailySaleSheetComponent extends Component {
             total: '',
             note: '',
             roll_meters_str: '',
-            is_unpaid: false
+            is_unpaid: false,
+            is_custom_customer: false,
+            is_custom_item: false
         });
     }
 
@@ -809,7 +831,15 @@ export class DailySaleSheetComponent extends Component {
     }
 
     addCashinRow() {
-        this.state.cashinLines.push({ id: Date.now() + Math.random(), customer_name: '', note: '', money: '', is_khata: false });
+        this.state.cashinLines.push({
+            _uid: 'row_cashin_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9),
+            id: Date.now() + Math.random(),
+            customer_name: '',
+            note: '',
+            money: '',
+            is_khata: false,
+            is_custom_customer: false
+        });
     }
 
     removeCashinRow(idx) {
@@ -826,13 +856,27 @@ export class DailySaleSheetComponent extends Component {
 
     onCashinChange(line) {
         const val = (line.customer_name || '').trim();
-        if (val && !this.state.customers.some(c => (c.name || '').toLowerCase() === val.toLowerCase())) {
-            this.state.customers.push({ id: Date.now() + Math.random(), name: val });
+        if (val) {
+            const match = this.state.customers.find(c => (c.name || '').toLowerCase() === val.toLowerCase());
+            if (match) {
+                line.customer_name = match.name;
+                line.is_custom_customer = false;
+            } else if (!this.state.customers.some(c => (c.name || '').toLowerCase() === val.toLowerCase())) {
+                this.state.customers.push({ id: Date.now() + Math.random(), name: val });
+            }
         }
     }
 
     addCashoutRow() {
-        this.state.cashoutLines.push({ id: Date.now() + Math.random(), customer_name: '', note: '', money: '', is_khata: false });
+        this.state.cashoutLines.push({
+            _uid: 'row_cashout_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9),
+            id: Date.now() + Math.random(),
+            customer_name: '',
+            note: '',
+            money: '',
+            is_khata: false,
+            is_custom_customer: false
+        });
     }
 
     removeCashoutRow(idx) {
@@ -849,13 +893,24 @@ export class DailySaleSheetComponent extends Component {
 
     onCashoutChange(line) {
         const val = (line.customer_name || '').trim();
-        if (val && !this.state.customers.some(c => (c.name || '').toLowerCase() === val.toLowerCase())) {
-            this.state.customers.push({ id: Date.now() + Math.random(), name: val });
+        if (val) {
+            const match = this.state.customers.find(c => (c.name || '').toLowerCase() === val.toLowerCase());
+            if (match) {
+                line.customer_name = match.name;
+                line.is_custom_customer = false;
+            } else if (!this.state.customers.some(c => (c.name || '').toLowerCase() === val.toLowerCase())) {
+                this.state.customers.push({ id: Date.now() + Math.random(), name: val });
+            }
         }
     }
 
     addShopexpRow() {
-        this.state.shopexpLines.push({ id: Date.now() + Math.random(), note: '', money: '' });
+        this.state.shopexpLines.push({
+            _uid: 'row_shopexp_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9),
+            id: Date.now() + Math.random(),
+            note: '',
+            money: ''
+        });
     }
 
     removeShopexpRow(idx) {
@@ -871,7 +926,12 @@ export class DailySaleSheetComponent extends Component {
     }
 
     addHomeexpRow() {
-        this.state.homeexpLines.push({ id: Date.now() + Math.random(), note: '', money: '' });
+        this.state.homeexpLines.push({
+            _uid: 'row_homeexp_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9),
+            id: Date.now() + Math.random(),
+            note: '',
+            money: ''
+        });
     }
 
     removeHomeexpRow(idx) {
@@ -903,6 +963,29 @@ export class DailySaleSheetComponent extends Component {
         line.customer_name = '';
     }
 
+    _clearCustomModeForCustomer(name) {
+        if (!name) return;
+        const lower = name.trim().toLowerCase();
+        for (const l of this.state.saleLines) {
+            if ((l.customer_name || '').trim().toLowerCase() === lower) {
+                l.customer_name = name;
+                l.is_custom_customer = false;
+            }
+        }
+        for (const l of this.state.cashinLines) {
+            if ((l.customer_name || '').trim().toLowerCase() === lower) {
+                l.customer_name = name;
+                l.is_custom_customer = false;
+            }
+        }
+        for (const l of this.state.cashoutLines) {
+            if ((l.customer_name || '').trim().toLowerCase() === lower) {
+                l.customer_name = name;
+                l.is_custom_customer = false;
+            }
+        }
+    }
+
     async saveCustomCustomer(line) {
         const val = (line.customer_name || '').trim();
         if (!val) {
@@ -921,6 +1004,7 @@ export class DailySaleSheetComponent extends Component {
                 }
                 line.customer_name = res.name;
                 line.is_custom_customer = false;
+                this._clearCustomModeForCustomer(res.name);
                 this.onCustomerInput(line);
                 if (this.notification) {
                     this.notification.add("Customer Created: " + res.name, { type: "success" });
@@ -969,6 +1053,7 @@ export class DailySaleSheetComponent extends Component {
                 }
                 line.customer_name = res.name;
                 line.is_custom_customer = false;
+                this._clearCustomModeForCustomer(res.name);
                 this.onCashinInput(line);
                 if (this.notification) {
                     this.notification.add("Customer Created: " + res.name, { type: "success" });
@@ -1017,6 +1102,7 @@ export class DailySaleSheetComponent extends Component {
                 }
                 line.customer_name = res.name;
                 line.is_custom_customer = false;
+                this._clearCustomModeForCustomer(res.name);
                 this.onCashoutInput(line);
                 if (this.notification) {
                     this.notification.add("Customer Created: " + res.name, { type: "success" });
@@ -1103,8 +1189,14 @@ export class DailySaleSheetComponent extends Component {
             clearTimeout(this.autoSaveTimer);
         }
         this.autoSaveTimer = setTimeout(() => {
+            // If the user currently has an active dropdown open or focused, don't interrupt them: re-queue autosave
+            const activeEl = document.activeElement;
+            if (activeEl && (activeEl.tagName === 'SELECT' || activeEl.classList.contains('form-select'))) {
+                this.triggerAutoSave();
+                return;
+            }
             this.saveSheetSilently();
-        }, 1200);
+        }, 2500);
     }
 
     async saveSheetSilently() {
@@ -1129,9 +1221,31 @@ export class DailySaleSheetComponent extends Component {
                     }
                 });
             }
-            if (res && res.products && res.products.length) {
-                this.state.products = res.products;
+            // Merge newly added customers from backend if any
+            if (res && res.customers && res.customers.length) {
+                const existingCIds = new Set((this.state.customers || []).map(c => c.id));
+                for (const c of res.customers) {
+                    if (!existingCIds.has(c.id)) {
+                        this.state.customers.push(c);
+                        existingCIds.add(c.id);
+                    }
+                }
             }
+            // Append newly added products from backend if any without re-creating existing option nodes
+            if (res && res.products && res.products.length > (this.state.products || []).length) {
+                const existingPIds = new Set((this.state.products || []).map(p => p.id));
+                for (const p of res.products) {
+                    if (!existingPIds.has(p.id)) {
+                        this.state.products.push(p);
+                        existingPIds.add(p.id);
+                    }
+                }
+            }
+            // Once saved, ensure no line with customer_name is stuck in custom mode with the right (✓) button
+            this.state.saleLines.forEach(l => { if (l.customer_name) l.is_custom_customer = false; });
+            this.state.cashinLines.forEach(l => { if (l.customer_name) l.is_custom_customer = false; });
+            this.state.cashoutLines.forEach(l => { if (l.customer_name) l.is_custom_customer = false; });
+
             this.state.saveStatus = 'saved';
         } catch (e) {
             console.error("Auto-save failed", e);
@@ -1776,14 +1890,22 @@ export class DailySaleSheetComponent extends Component {
                     }
                 });
             }
-            const resCust = await rpc("/fabric_erp/get_customers");
-            if (resCust && resCust.length) {
-                this.state.customers = resCust;
+            if (res && res.customers && res.customers.length) {
+                this.state.customers = res.customers;
+            } else {
+                const resCust = await rpc("/fabric_erp/get_customers");
+                if (resCust && resCust.length) {
+                    this.state.customers = resCust;
+                }
             }
-            const resProducts = await rpc("/fabric_erp/get_products");
-            if (resProducts && resProducts.length) {
-                this.state.products = resProducts;
+            if (res && res.products && res.products.length) {
+                this.state.products = res.products;
             }
+
+            // Ensure no saved lines are left in custom customer mode with the right (✓) button
+            this.state.saleLines.forEach(l => { if (l.customer_name) l.is_custom_customer = false; });
+            this.state.cashinLines.forEach(l => { if (l.customer_name) l.is_custom_customer = false; });
+            this.state.cashoutLines.forEach(l => { if (l.customer_name) l.is_custom_customer = false; });
 
             this.state.saveStatus = 'saved';
             if (this.notification) {
