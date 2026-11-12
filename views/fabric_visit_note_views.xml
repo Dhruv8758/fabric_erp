@@ -9,7 +9,7 @@
                 <field name="date_12h" string="Date &amp; Time (12h)"/>
                 <field name="date" column_invisible="1"/>
                 <field name="description"/>
-                <field name="amount"/>
+                <field name="amount" widget="fabric_amount"/>
                 <field name="time_added_str" string="Time / Credit Time"/>
                 <field name="duration_str" string="Duration"/>
                 <field name="is_over_24h" column_invisible="1"/>
@@ -38,7 +38,7 @@
                             <field name="customer_name"/>
                         </group>
                         <group>
-                            <field name="amount"/>
+                            <field name="amount" widget="fabric_amount"/>
                             <field name="is_credited" widget="boolean_toggle"/>
                             <field name="is_over_24h" readonly="1"/>
                             <field name="time_added_str" readonly="1"/>

@@ -17,9 +17,9 @@
                 <field name="name" string="Customer Name &amp; Contact"/>
                 <field name="phone"/>
 
-                <field name="total_sales" string="Total Sales"/>
-                <field name="paid_amount" string="Paid Amount"/>
-                <field name="current_net_balance" string="Current Net Balance"/>
+                <field name="total_sales" string="Total Sales" widget="fabric_amount"/>
+                <field name="paid_amount" string="Paid Amount" widget="fabric_amount"/>
+                <field name="current_net_balance" string="Current Net Balance" widget="fabric_amount"/>
                 <field name="status" widget="badge" decoration-danger="status == 'udhaar_due'" decoration-success="status == 'clear'"/>
                 <button name="action_view_ledger" string="View Form ›" type="object" class="btn-outline-primary btn-sm"/>
             </list>
@@ -101,15 +101,15 @@
                                 <div class="row text-center mt-2">
                                     <div class="col-4 border-end">
                                         <span class="text-muted small fw-bold text-uppercase d-block">TOTAL SALES</span>
-                                        <h4 class="fw-bold text-dark m-0 mt-1"><field name="total_sales"/></h4>
+                                        <h4 class="fw-bold text-dark m-0 mt-1"><field name="total_sales" widget="fabric_amount"/></h4>
                                     </div>
                                     <div class="col-4 border-end">
                                         <span class="text-muted small fw-bold text-uppercase d-block">PAYMENTS RECEIVED</span>
-                                        <h4 class="fw-bold text-success m-0 mt-1"><field name="paid_amount"/></h4>
+                                        <h4 class="fw-bold text-success m-0 mt-1"><field name="paid_amount" widget="fabric_amount"/></h4>
                                     </div>
                                     <div class="col-4">
                                         <span class="text-muted small fw-bold text-uppercase d-block">CURRENT NET BALANCE</span>
-                                        <h4 class="fw-bold text-danger m-0 mt-1"><field name="current_net_balance"/></h4>
+                                        <h4 class="fw-bold text-danger m-0 mt-1"><field name="current_net_balance" widget="fabric_amount"/></h4>
                                     </div>
                                 </div>
                             </div>
@@ -128,7 +128,7 @@
                                 <field name="entry_type" widget="badge" decoration-success="entry_type == 'jama'" decoration-danger="entry_type == 'udhaar'"/>
                                 <field name="particulars"/>
                                 <field name="payment_method"/>
-                                <field name="signed_amount" sum="Net Balance"/>
+                                <field name="signed_amount" sum="Net Balance" widget="fabric_amount"/>
                                 <button name="action_open_transaction" type="object" icon="fa-external-link" string="Open" title="Open Transaction Details"/>
                             </list>
                         </field>
@@ -152,7 +152,7 @@
                             <field name="entry_type" required="1"/>
                         </group>
                         <group>
-                            <field name="amount" required="1"/>
+                            <field name="amount" required="1" widget="fabric_amount"/>
                             <field name="payment_method" required="1"/>
                         </group>
                     </group>
@@ -183,7 +183,7 @@
                             <field name="date"/>
                         </group>
                         <group>
-                            <field name="amount"/>
+                            <field name="amount" widget="fabric_amount"/>
                             <field name="payment_method"/>
                         </group>
                     </group>

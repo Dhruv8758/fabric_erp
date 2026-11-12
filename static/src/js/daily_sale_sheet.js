@@ -4,6 +4,7 @@ import { Component, useState, onWillStart, onMounted, onWillUnmount } from "@odo
 import { registry } from "@web/core/registry";
 import { rpc } from "@web/core/network/rpc";
 import { useService } from "@web/core/utils/hooks";
+import { parseAmount, formatAmount, formatAmountState, applyFormattedInput } from "./fabric_amount_utils";
 
 let globalLastSelectedDate = null;
 
@@ -145,41 +146,41 @@ export class DailySaleSheetComponent extends Component {
             const cleanZero = (val) => (val === 0 || val === '0' || val === 0.0 || !val) ? '' : val;
             if (data && data.exists) {
                 this.state.current_uid = data.current_uid;
-                this.state.lastBalance = cleanZero(data.last_balance);
+                this.state.lastBalance = formatAmountState(data.last_balance);
                 this.state.saleLines = (data.saleLines || []).map(l => ({
                     ...l,
                     _uid: 'row_sale_' + (l.id || (Date.now() + '_' + Math.random().toString(36).substring(2, 9))),
                     roll_qty: cleanZero(l.roll_qty),
                     qty: cleanZero(l.qty),
-                    price: cleanZero(l.price),
-                    total: cleanZero(l.total),
+                    price: formatAmountState(l.price),
+                    total: formatAmountState(l.total),
                     is_custom_customer: false,
                     is_custom_item: false
                 }));
                 this.state.cashinLines = (data.cashinLines || []).map(l => ({
                     ...l,
                     _uid: 'row_cashin_' + (l.id || (Date.now() + '_' + Math.random().toString(36).substring(2, 9))),
-                    money: cleanZero(l.money),
+                    money: formatAmountState(l.money),
                     is_custom_customer: false
                 }));
                 this.state.cashoutLines = (data.cashoutLines || []).map(l => ({
                     ...l,
                     _uid: 'row_cashout_' + (l.id || (Date.now() + '_' + Math.random().toString(36).substring(2, 9))),
-                    money: cleanZero(l.money),
+                    money: formatAmountState(l.money),
                     is_custom_customer: false
                 }));
                 this.state.shopexpLines = (data.shopexpLines || []).map(l => ({
                     ...l,
                     _uid: 'row_shopexp_' + (l.id || (Date.now() + '_' + Math.random().toString(36).substring(2, 9))),
-                    money: cleanZero(l.money)
+                    money: formatAmountState(l.money)
                 }));
                 this.state.homeexpLines = (data.homeexpLines || []).map(l => ({
                     ...l,
                     _uid: 'row_homeexp_' + (l.id || (Date.now() + '_' + Math.random().toString(36).substring(2, 9))),
-                    money: cleanZero(l.money)
+                    money: formatAmountState(l.money)
                 }));
             } else if (data) {
-                this.state.lastBalance = cleanZero(data.last_balance);
+                this.state.lastBalance = formatAmountState(data.last_balance);
                 this.state.saleLines = [];
                 this.state.cashinLines = [];
                 this.state.cashoutLines = [];
@@ -328,13 +329,51 @@ export class DailySaleSheetComponent extends Component {
         await this.loadSheetByDate(this.state.date);
     }
 
+    get dayName() {
+        const dateStr = this.state.date;
+        if (!dateStr) return '';
+        const parts = String(dateStr).split('-');
+        if (parts.length !== 3) return '';
+        const [y, m, d] = parts.map(Number);
+        if (!y || !m || !d) return '';
+        const dt = new Date(y, m - 1, d);
+        if (isNaN(dt.getTime())) return '';
+        return dt.toLocaleDateString('en-US', { weekday: 'long' });
+    }
+
+    parseNum(val) {
+        return parseAmount(val);
+    }
+
     formatVal(val) {
-        if (val === '' || val === null || val === undefined) return '0';
-        const cleanVal = typeof val === 'string' ? val.replace(/,/g, '') : val;
-        const num = parseFloat(cleanVal);
-        if (isNaN(num)) return '0';
-        const str = num.toFixed(2);
-        return str.endsWith('.00') ? str.slice(0, -3) : str;
+        return formatAmount(val);
+    }
+
+    onLastBalanceInput(ev) {
+        applyFormattedInput(ev, (val) => {
+            this.state.lastBalance = val;
+        });
+        this.triggerAutoSave();
+    }
+
+    onSaleAmountInput(ev, line, fieldName, recalcRow = false) {
+        applyFormattedInput(ev, (val) => {
+            line[fieldName] = val;
+        });
+        if (recalcRow) {
+            this.updateSaleRow(line);
+        } else {
+            this.onSaleLineChange(line);
+        }
+    }
+
+    onLineMoneyInput(ev, line, afterUpdate) {
+        applyFormattedInput(ev, (val) => {
+            line.money = val;
+        });
+        if (afterUpdate) {
+            afterUpdate();
+        }
     }
 
     getCustomerBalance(nameStr) {
@@ -364,35 +403,35 @@ export class DailySaleSheetComponent extends Component {
 
     // Dynamic Calculations
     get totalSale() {
-        return this.state.saleLines.reduce((sum, line) => sum + (parseFloat(line.total) || 0), 0);
+        return this.state.saleLines.reduce((sum, line) => sum + this.parseNum(line.total), 0);
     }
 
     get totalSaleRollQty() {
-        return this.state.saleLines.reduce((sum, line) => sum + (parseFloat(line.roll_qty) || 0), 0);
+        return this.state.saleLines.reduce((sum, line) => sum + this.parseNum(line.roll_qty), 0);
     }
 
     get totalSaleMeterQty() {
-        return this.state.saleLines.reduce((sum, line) => sum + (parseFloat(line.qty) || 0), 0);
+        return this.state.saleLines.reduce((sum, line) => sum + this.parseNum(line.qty), 0);
     }
 
     get totalCashin() {
-        return this.state.cashinLines.reduce((sum, line) => sum + (parseFloat(line.money) || 0), 0);
+        return this.state.cashinLines.reduce((sum, line) => sum + this.parseNum(line.money), 0);
     }
 
     get totalCashout() {
-        return this.state.cashoutLines.reduce((sum, line) => sum + (parseFloat(line.money) || 0), 0);
+        return this.state.cashoutLines.reduce((sum, line) => sum + this.parseNum(line.money), 0);
     }
 
     get totalShopexp() {
-        return this.state.shopexpLines.reduce((sum, line) => sum + (parseFloat(line.money) || 0), 0);
+        return this.state.shopexpLines.reduce((sum, line) => sum + this.parseNum(line.money), 0);
     }
 
     get totalHomeexp() {
-        return this.state.homeexpLines.reduce((sum, line) => sum + (parseFloat(line.money) || 0), 0);
+        return this.state.homeexpLines.reduce((sum, line) => sum + this.parseNum(line.money), 0);
     }
 
     get subTotal() {
-        return (parseFloat(this.state.lastBalance) || 0) + this.totalSale + this.totalCashin;
+        return this.parseNum(this.state.lastBalance) + this.totalSale + this.totalCashin;
     }
 
     get currentDayBalance() {
@@ -403,16 +442,16 @@ export class DailySaleSheetComponent extends Component {
         return this.state.saleLines.filter(l => 
             (l.customer_name && l.customer_name.trim()) || 
             (l.item_name && l.item_name.trim()) || 
-            (parseFloat(l.qty) > 0) || 
-            (parseFloat(l.total) > 0) ||
-            (parseFloat(l.roll_qty) > 0)
+            (this.parseNum(l.qty) > 0) || 
+            (this.parseNum(l.total) > 0) ||
+            (this.parseNum(l.roll_qty) > 0)
         );
     }
 
     get validCashinLines() {
         return this.state.cashinLines.filter(l => 
             (l.customer_name && l.customer_name.trim()) || 
-            (parseFloat(l.money) > 0) || 
+            (this.parseNum(l.money) > 0) || 
             (l.note && l.note.trim())
         );
     }
@@ -420,21 +459,21 @@ export class DailySaleSheetComponent extends Component {
     get validCashoutLines() {
         return this.state.cashoutLines.filter(l => 
             (l.customer_name && l.customer_name.trim()) || 
-            (parseFloat(l.money) > 0) || 
+            (this.parseNum(l.money) > 0) || 
             (l.note && l.note.trim())
         );
     }
 
     get validShopexpLines() {
         return this.state.shopexpLines.filter(l => 
-            (parseFloat(l.money) > 0) || 
+            (this.parseNum(l.money) > 0) || 
             (l.note && l.note.trim())
         );
     }
 
     get validHomeexpLines() {
         return this.state.homeexpLines.filter(l => 
-            (parseFloat(l.money) > 0) || 
+            (this.parseNum(l.money) > 0) || 
             (l.note && l.note.trim())
         );
     }
@@ -490,11 +529,11 @@ export class DailySaleSheetComponent extends Component {
         if (!line) return;
         const custName = line.customer_name ? line.customer_name.trim() : '';
         const itemName = line.item_name ? line.item_name.trim() : '';
-        const rollQty = parseFloat(line.roll_qty) || 0;
-        const qty = parseFloat(line.qty) || 0;
+        const rollQty = this.parseNum(line.roll_qty);
+        const qty = this.parseNum(line.qty);
         const unit = line.unit || 'Meter';
-        const price = parseFloat(line.price) || 0;
-        const totalMoney = parseFloat(line.total) || 0;
+        const price = this.parseNum(line.price);
+        const totalMoney = line.total ? this.formatVal(line.total) : (qty > 0 && price > 0 ? this.formatVal(qty * price) : '');
         const note = line.note ? line.note.trim() : '';
 
         const parts = [];
@@ -507,7 +546,7 @@ export class DailySaleSheetComponent extends Component {
         if (line.roll_meters_str) qtyParts.push(`(${line.roll_meters_str})`);
         
         if (qtyParts.length > 0) parts.push(`Qty: ${qtyParts.join(' / ')}`);
-        if (price > 0) parts.push(`Rate: ${price}/${unit}`);
+        if (price > 0) parts.push(`Rate: ${this.formatVal(price)}/${unit}`);
         if (note) parts.push(`Note: ${note}`);
 
         const detailText = parts.length > 0 ? parts.join(' | ') : (custName || 'Unpaid Sale');
@@ -520,7 +559,7 @@ export class DailySaleSheetComponent extends Component {
                 c.note && 
                 c.note.startsWith('Unpaid Sale:') && 
                 (c.customer_name === custName || c.note.includes(`Customer: ${custName}`)) &&
-                c.money === totalMoney
+                this.parseNum(c.money) === this.parseNum(totalMoney)
             );
         }
 
@@ -543,7 +582,7 @@ export class DailySaleSheetComponent extends Component {
                     is_custom_customer: false,
                     is_khata: false
                 };
-                const emptyIdx = this.state.cashoutLines.findIndex(c => !c.note && (!c.money || c.money === 0));
+                const emptyIdx = this.state.cashoutLines.findIndex(c => !c.note && (!c.money || this.parseNum(c.money) === 0));
                 if (emptyIdx !== -1) {
                     this.state.cashoutLines.splice(emptyIdx, 1, newCashout);
                 } else {
@@ -606,7 +645,7 @@ export class DailySaleSheetComponent extends Component {
                     line.unit = match.unit;
                 }
                 if (match.price_per_unit) {
-                    line.price = match.price_per_unit;
+                    line.price = formatAmountState(match.price_per_unit);
                 }
             }
         }
@@ -816,8 +855,8 @@ export class DailySaleSheetComponent extends Component {
     }
 
     updateSaleRow(line) {
-        const q = parseFloat(line.qty);
-        const p = parseFloat(line.price);
+        const q = this.parseNum(line.qty);
+        const p = this.parseNum(line.price);
         if (!isNaN(q) && !isNaN(p) && q > 0 && p > 0) {
             line.total = this.formatVal(q * p);
         } else {
@@ -1142,7 +1181,7 @@ export class DailySaleSheetComponent extends Component {
             return;
         }
         try {
-            const res = await rpc("/fabric_erp/create_product", { name: val, unit: line.unit || 'Meter', price: parseFloat(line.price) || 0.0 });
+            const res = await rpc("/fabric_erp/create_product", { name: val, unit: line.unit || 'Meter', price: this.parseNum(line.price) });
             if (res && res.status === 'success') {
                 const existing = this.state.products.find(i => (i.name || '').toLowerCase() === res.name.toLowerCase());
                 if (!existing) {
@@ -1156,7 +1195,7 @@ export class DailySaleSheetComponent extends Component {
                     line.unit = res.unit;
                 }
                 if (res.price_per_unit) {
-                    line.price = res.price_per_unit;
+                    line.price = formatAmountState(res.price_per_unit);
                 }
                 line.is_custom_item = false;
                 this.updateSaleRow(line);
@@ -1261,15 +1300,17 @@ export class DailySaleSheetComponent extends Component {
 
     generateCleanReportHtml() {
         const dateStr = this.state.date || '';
-        const lastBalStr = this.formatVal(this.state.lastBalance) || '0.00';
+        const dayNameStr = this.dayName;
+        const displayDate = dayNameStr ? `${dateStr} (${dayNameStr})` : dateStr;
+        const lastBalStr = this.formatVal(this.state.lastBalance) || '0';
         
         // Filter valid sale lines
         const validSales = (this.state.saleLines || []).filter(l => 
             (l.customer_name && String(l.customer_name).trim() !== '') || 
             (l.item_name && String(l.item_name).trim() !== '') || 
-            (parseFloat(l.qty) > 0) || 
-            (parseFloat(l.total) > 0) || 
-            (parseFloat(l.roll_qty) > 0)
+            (this.parseNum(l.qty) > 0) || 
+            (this.parseNum(l.total) > 0) || 
+            (this.parseNum(l.roll_qty) > 0)
         );
 
         let saleRowsHtml = '';
@@ -1285,8 +1326,8 @@ export class DailySaleSheetComponent extends Component {
                         <td style="border:1px solid #cbd5e1; padding:6px 8px; text-align:left; font-weight:500;">${line.item_name || '-'}</td>
                         <td style="border:1px solid #cbd5e1; padding:6px 4px; text-align:right; font-weight:600;">${line.qty || '0'}${rollBreakdown}</td>
                         <td style="border:1px solid #cbd5e1; padding:6px 4px; text-align:center; color:#475569;">${line.unit || 'Meter'}</td>
-                        <td style="border:1px solid #cbd5e1; padding:6px 4px; text-align:right;">${line.price || '0'}</td>
-                        <td style="border:1px solid #cbd5e1; padding:6px 8px; text-align:right; font-weight:700; color:#166534;">${line.total || '0'}</td>
+                        <td style="border:1px solid #cbd5e1; padding:6px 4px; text-align:right;">${line.price ? this.formatVal(line.price) : '0'}</td>
+                        <td style="border:1px solid #cbd5e1; padding:6px 8px; text-align:right; font-weight:700; color:#166534;">${line.total ? this.formatVal(line.total) : '0'}</td>
                         <td style="border:1px solid #cbd5e1; padding:6px 8px; text-align:left; font-size:10px; color:#334155;">${line.note || ''}${unpaidBadge}</td>
                     </tr>
                 `;
@@ -1302,7 +1343,7 @@ export class DailySaleSheetComponent extends Component {
         // Cash In
         const validCashin = (this.state.cashinLines || []).filter(l => 
             (l.customer_name && String(l.customer_name).trim() !== '') || 
-            (parseFloat(l.money) > 0) || 
+            (this.parseNum(l.money) > 0) || 
             (l.note && String(l.note).trim() !== '')
         );
         let cashinSection = '';
@@ -1314,7 +1355,7 @@ export class DailySaleSheetComponent extends Component {
                         <td style="border:1px solid #cbd5e1; padding:5px 4px; text-align:center;">${idx + 1}</td>
                         <td style="border:1px solid #cbd5e1; padding:5px 8px; text-align:left; font-weight:600;">${l.customer_name || '-'}</td>
                         <td style="border:1px solid #cbd5e1; padding:5px 8px; text-align:left; color:#334155;">${l.note || '-'}</td>
-                        <td style="border:1px solid #cbd5e1; padding:5px 8px; text-align:right; font-weight:700; color:#166534;">${l.money || '0'}</td>
+                        <td style="border:1px solid #cbd5e1; padding:5px 8px; text-align:right; font-weight:700; color:#166534;">${l.money ? this.formatVal(l.money) : '0'}</td>
                     </tr>
                 `;
             });
@@ -1347,7 +1388,7 @@ export class DailySaleSheetComponent extends Component {
         // Cash Out
         const validCashout = (this.state.cashoutLines || []).filter(l => 
             (l.customer_name && String(l.customer_name).trim() !== '') || 
-            (parseFloat(l.money) > 0) || 
+            (this.parseNum(l.money) > 0) || 
             (l.note && String(l.note).trim() !== '')
         );
         let cashoutSection = '';
@@ -1390,8 +1431,8 @@ export class DailySaleSheetComponent extends Component {
         }
 
         // Expenses
-        const validShopexp = (this.state.shopexpLines || []).filter(l => (parseFloat(l.money) > 0) || (l.note && String(l.note).trim() !== ''));
-        const validHomeexp = (this.state.homeexpLines || []).filter(l => (parseFloat(l.money) > 0) || (l.note && String(l.note).trim() !== ''));
+        const validShopexp = (this.state.shopexpLines || []).filter(l => (this.parseNum(l.money) > 0) || (l.note && String(l.note).trim() !== ''));
+        const validHomeexp = (this.state.homeexpLines || []).filter(l => (this.parseNum(l.money) > 0) || (l.note && String(l.note).trim() !== ''));
         let expensesSection = '';
         if (validShopexp.length > 0 || validHomeexp.length > 0) {
             let shopHtml = '';
@@ -1483,12 +1524,12 @@ export class DailySaleSheetComponent extends Component {
                     <div>
                         <h1 style="margin:0; font-size:20px; font-weight:800; color:#2c3e50; text-transform:uppercase; letter-spacing:0.5px;">DAILY SALE SHEET</h1>
                         <div style="font-size:11px; color:#666; margin-top:2px;">
-                            Date: <strong style="color:#0f172a;">${dateStr}</strong>
+                            Date: <strong style="color:#0f172a;">${displayDate}</strong>
                         </div>
                     </div>
                     <div style="text-align:right;">
                         <div style="font-size:12px; font-weight:700; color:#2c3e50; background:#f1f5f9; padding:4px 10px; border:1px solid #cbd5e1; border-radius:4px; display:inline-block;">
-                            Date: <span style="color:#0f172a;">${dateStr}</span>
+                            Date: <span style="color:#0f172a;">${displayDate}</span>
                         </div>
                     </div>
                 </div>

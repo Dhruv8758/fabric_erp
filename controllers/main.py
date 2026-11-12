@@ -413,13 +413,16 @@ class FabricErpController(http.Controller):
     @http.route('/fabric_erp/save_daily_sheet', type='json', auth='user')
     def save_daily_sheet(self, date_str, last_balance, sale_lines, cashin_lines, cashout_lines, shopexp_lines, homeexp_lines, is_silent=False):
         def safe_float(val):
-            if not val:
+            if val is None or val == '':
                 return 0.0
             try:
-                if isinstance(val, str) and not val.strip():
-                    return 0.0
+                if isinstance(val, str):
+                    cleaned = val.replace(',', '').strip()
+                    if not cleaned:
+                        return 0.0
+                    return float(cleaned)
                 return float(val)
-            except ValueError:
+            except (ValueError, TypeError):
                 return 0.0
 
         sheet_model = request.env['fabric.daily.sheet'].sudo()
@@ -737,13 +740,16 @@ class FabricErpController(http.Controller):
     @http.route('/fabric_erp/add_temp_visit_note', type='json', auth='user')
     def add_temp_visit_note(self, description, amount, is_credited, roll_qty=0.0, qty=0.0, unit='Meter', roll_meters_str=''):
         def safe_float(val):
-            if not val:
+            if val is None or val == '':
                 return 0.0
             try:
-                if isinstance(val, str) and not val.strip():
-                    return 0.0
+                if isinstance(val, str):
+                    cleaned = val.replace(',', '').strip()
+                    if not cleaned:
+                        return 0.0
+                    return float(cleaned)
                 return float(val)
-            except ValueError:
+            except (ValueError, TypeError):
                 return 0.0
 
         is_cred = bool(is_credited)

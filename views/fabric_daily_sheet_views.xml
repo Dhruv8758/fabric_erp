@@ -7,14 +7,14 @@
             <list string="Daily Sales Sheets" decoration-info="create_uid == uid">
                 <field name="create_uid" string="Creator" readonly="1" widget="many2one_avatar_user" optional="show"/>
                 <field name="date"/>
-                <field name="last_balance"/>
-                <field name="total_sale"/>
-                <field name="total_cashin"/>
-                <field name="sub_total"/>
-                <field name="total_cashout"/>
-                <field name="total_shopexp"/>
-                <field name="total_homeexp"/>
-                <field name="current_day_balance"/>
+                <field name="last_balance" widget="fabric_amount"/>
+                <field name="total_sale" widget="fabric_amount"/>
+                <field name="total_cashin" widget="fabric_amount"/>
+                <field name="sub_total" widget="fabric_amount"/>
+                <field name="total_cashout" widget="fabric_amount"/>
+                <field name="total_shopexp" widget="fabric_amount"/>
+                <field name="total_homeexp" widget="fabric_amount"/>
+                <field name="current_day_balance" widget="fabric_amount"/>
             </list>
         </field>
     </record>
@@ -33,7 +33,7 @@
                             <field name="date"/>
                         </group>
                         <group>
-                            <field name="last_balance"/>
+                            <field name="last_balance" widget="fabric_amount"/>
                         </group>
                     </group>
 
@@ -49,8 +49,8 @@
                                     <field name="qty"/>
                                     <field name="item_name"/>
                                     <field name="unit"/>
-                                    <field name="price_per_unit"/>
-                                    <field name="total_price"/>
+                                    <field name="price_per_unit" widget="fabric_amount"/>
+                                    <field name="total_price" widget="fabric_amount"/>
                                     <field name="note"/>
                                     <field name="is_unpaid"/>
                                 </list>
@@ -64,7 +64,7 @@
                                     <field name="customer_id"/>
                                     <field name="customer_name"/>
                                     <field name="note"/>
-                                    <field name="money"/>
+                                    <field name="money" widget="fabric_amount"/>
                                     <field name="is_khata"/>
                                 </list>
                             </field>
@@ -77,7 +77,7 @@
                                     <field name="customer_id"/>
                                     <field name="customer_name"/>
                                     <field name="note"/>
-                                    <field name="money"/>
+                                    <field name="money" widget="fabric_amount"/>
                                     <field name="is_khata"/>
                                 </list>
                             </field>
@@ -88,7 +88,7 @@
                                     <field name="create_uid" string="User" readonly="1" widget="many2one_avatar_user" optional="show"/>
                                     <field name="sequence"/>
                                     <field name="note"/>
-                                    <field name="money"/>
+                                    <field name="money" widget="fabric_amount"/>
                                 </list>
                             </field>
                         </page>
@@ -98,7 +98,7 @@
                                     <field name="create_uid" string="User" readonly="1" widget="many2one_avatar_user" optional="show"/>
                                     <field name="sequence"/>
                                     <field name="note"/>
-                                    <field name="money"/>
+                                    <field name="money" widget="fabric_amount"/>
                                 </list>
                             </field>
                         </page>
@@ -106,14 +106,14 @@
 
                     <!-- FINAL CALCULATION SUMMARY -->
                     <group class="oe_subtotal_footer oe_right">
-                        <field name="last_balance"/>
-                        <field name="total_sale"/>
-                        <field name="total_cashin"/>
-                        <field name="sub_total" class="oe_subtotal_footer_separator"/>
-                        <field name="total_cashout"/>
-                        <field name="total_shopexp"/>
-                        <field name="total_homeexp"/>
-                        <field name="current_day_balance" class="oe_subtotal_footer_separator"/>
+                        <field name="last_balance" widget="fabric_amount"/>
+                        <field name="total_sale" widget="fabric_amount"/>
+                        <field name="total_cashin" widget="fabric_amount"/>
+                        <field name="sub_total" class="oe_subtotal_footer_separator" widget="fabric_amount"/>
+                        <field name="total_cashout" widget="fabric_amount"/>
+                        <field name="total_shopexp" widget="fabric_amount"/>
+                        <field name="total_homeexp" widget="fabric_amount"/>
+                        <field name="current_day_balance" class="oe_subtotal_footer_separator" widget="fabric_amount"/>
                     </group>
                 </sheet>
                 <chatter/>

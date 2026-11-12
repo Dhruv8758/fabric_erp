@@ -430,7 +430,7 @@
                                 </div>
                             </div>
                             <div class="col-md-2">
-                                <input type="number" class="form-control" t-model="state.newNoteAmount" placeholder="Amount" step="any" t-on-keydown="(ev) => ev.key === 'Enter' &amp;&amp; this.addTempNote()"/>
+                                <input type="text" inputmode="decimal" class="form-control" t-att-value="state.newNoteAmount" t-on-input="(ev) => this.onNoteAmountInput(ev)" placeholder="Amount" t-on-keydown="(ev) => ev.key === 'Enter' &amp;&amp; this.addTempNote()"/>
                             </div>
                             <div class="col-md-2 d-flex gap-1">
                                 <button class="btn btn-info text-white fw-bold flex-grow-1" t-on-click="() => this.addTempNote(false)">
@@ -677,7 +677,7 @@
                                     </div>
                                     <div class="col-md-3">
                                         <label class="fw-bold small text-dark mb-1">Amount</label>
-                                        <input type="number" class="form-control" t-model="state.newNoteAmount" placeholder="Amount" step="any"/>
+                                        <input type="text" inputmode="decimal" class="form-control" t-att-value="state.newNoteAmount" t-on-input="(ev) => this.onNoteAmountInput(ev)" placeholder="Amount"/>
                                     </div>
                                 </div>
                                 <div class="form-check form-switch mb-4 p-2 bg-light rounded border ps-5">

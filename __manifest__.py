@@ -18,6 +18,8 @@
     'assets': {
         'web.assets_backend': [
             'fabric_erp/static/src/css/fabric_custom.css',
+            'fabric_erp/static/src/js/fabric_amount_utils.js',
+            'fabric_erp/static/src/js/fabric_amount_field.js',
             'fabric_erp/static/src/js/fabric_dashboard.js',
             'fabric_erp/static/src/xml/fabric_dashboard.xml',
             'fabric_erp/static/src/js/daily_sale_sheet.js',

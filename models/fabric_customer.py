@@ -113,8 +113,12 @@ class FabricCustomer(models.Model):
             order='date asc, id asc'
         )
         
+        def fmt_amt(val):
+            formatted = f"{float(val or 0.0):,.2f}"
+            return formatted[:-3] if formatted.endswith('.00') else formatted
+
         msg = f"*Khata Summary for {self.name}*\n"
-        msg += f"*Current Net Balance:* {self.current_net_balance:.2f}\n\n"
+        msg += f"*Current Net Balance:* {fmt_amt(self.current_net_balance)}\n\n"
         
         if txs:
             if len(txs) > 50:
@@ -127,7 +131,7 @@ class FabricCustomer(models.Model):
                 t_date = tx.date.strftime('%d-%b-%Y') if tx.date else ''
                 t_type = 'Udhaar' if tx.entry_type == 'udhaar' else 'Jama'
                 particulars = tx.particulars or ''
-                msg += f"{i+1}. {t_date} | {t_type} | {tx.amount:.2f} | {particulars}\n"
+                msg += f"{i+1}. {t_date} | {t_type} | {fmt_amt(tx.amount)} | {particulars}\n"
         else:
             msg += "No transactions found.\n"
             

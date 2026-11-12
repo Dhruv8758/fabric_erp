@@ -370,6 +370,11 @@
                                style="height: 38px; font-size: 15px; cursor: pointer; min-width: 140px;" 
                                t-model="state.date" 
                                t-on-change="(ev) => this.onDateChange(ev)"/>
+                        <t t-if="dayName">
+                            <span class="input-group-text bg-light border-start fw-bold text-primary px-3" style="font-size: 14px; height: 38px;">
+                                <t t-esc="dayName"/>
+                            </span>
+                        </t>
                     </div>
                     <button type="button" 
                             class="btn btn-outline-primary btn-sm px-3 shadow-sm d-flex align-items-center justify-content-center" 
@@ -391,7 +396,7 @@
                 <div class="balance-box">
                     <span class="fs-6">Last Working Day Total Balance</span>
                     <div class="input-group w-auto">
-                        <input type="number" class="form-control text-end fw-bold fs-6" style="width:160px;" t-model="state.lastBalance" step="any" placeholder="0"/>
+                        <input type="text" inputmode="decimal" class="form-control text-end fw-bold fs-6" style="width:160px;" t-att-value="state.lastBalance" t-on-input="(ev) => this.onLastBalanceInput(ev)" placeholder="0"/>
                     </div>
                 </div>
 
@@ -499,8 +504,8 @@
                                                 </t>
                                             </select>
                                         </td>
-                                        <td><input type="number" t-model="line.price" t-on-input="() => this.updateSaleRow(line)" step="any" placeholder="Price"/></td>
-                                        <td><input type="number" t-model="line.total" step="any" class="fw-bold text-success" placeholder="Total"/></td>
+                                        <td><input type="text" inputmode="decimal" t-att-value="line.price" t-on-input="(ev) => this.onSaleAmountInput(ev, line, 'price', true)" placeholder="Price"/></td>
+                                        <td><input type="text" inputmode="decimal" t-att-value="line.total" t-on-input="(ev) => this.onSaleAmountInput(ev, line, 'total', false)" class="fw-bold text-success" placeholder="Total"/></td>
                                         <td><input type="text" class="text-start" t-model="line.note" t-on-input="() => this.onSaleLineChange(line)" placeholder="Note / Remarks"/></td>
                                         <td class="text-center">
                                             <div class="form-check form-switch d-inline-block m-0 align-middle">
@@ -591,7 +596,7 @@
                                         <td>
                                             <input type="text" class="form-control form-control-sm text-start" t-model="line.note" t-on-input="() => this.onCashinInput(line)" placeholder="Note"/>
                                         </td>
-                                        <td><input type="number" t-model="line.money" t-on-input="() => this.onCashinInput(line)" step="any" placeholder="Money"/></td>
+                                        <td><input type="text" inputmode="decimal" t-att-value="line.money" t-on-input="(ev) => this.onLineMoneyInput(ev, line, () => this.onCashinInput(line))" placeholder="Money"/></td>
                                         <td class="text-center align-middle">
                                             <div class="d-flex align-items-center justify-content-center gap-1">
                                                 <div class="form-check form-switch d-inline-block m-0 align-middle">
@@ -692,7 +697,7 @@
                                         <td>
                                             <input type="text" class="form-control form-control-sm text-start" t-model="line.note" t-on-input="() => this.onCashoutInput(line)" placeholder="Note"/>
                                         </td>
-                                        <td><input type="number" t-model="line.money" t-on-input="() => this.onCashoutInput(line)" step="any" placeholder="Money"/></td>
+                                        <td><input type="text" inputmode="decimal" t-att-value="line.money" t-on-input="(ev) => this.onLineMoneyInput(ev, line, () => this.onCashoutInput(line))" placeholder="Money"/></td>
                                         <td class="text-center align-middle">
                                             <div class="d-flex align-items-center justify-content-center gap-1">
                                                 <div class="form-check form-switch d-inline-block m-0 align-middle">
@@ -761,7 +766,7 @@
                                             </t>
                                         </td>
                                         <td class="text-start"><input type="text" class="text-start" t-model="line.note" t-on-input="() => this.onShopexpInput(line)" placeholder="Expense Note"/></td>
-                                        <td><input type="number" t-model="line.money" t-on-input="() => this.onShopexpInput(line)" step="any" placeholder="Money"/></td>
+                                        <td><input type="text" inputmode="decimal" t-att-value="line.money" t-on-input="(ev) => this.onLineMoneyInput(ev, line, () => this.onShopexpInput(line))" placeholder="Money"/></td>
                                         <td class="no-print">
                                             <button class="remove-row-btn" t-on-click="() => this.removeShopexpRow(line_index)">✕</button>
                                         </td>
@@ -817,7 +822,7 @@
                                             </t>
                                         </td>
                                         <td class="text-start"><input type="text" class="text-start" t-model="line.note" t-on-input="() => this.onHomeexpInput(line)" placeholder="Home Expense Note"/></td>
-                                        <td><input type="number" t-model="line.money" t-on-input="() => this.onHomeexpInput(line)" step="any" placeholder="Money"/></td>
+                                        <td><input type="text" inputmode="decimal" t-att-value="line.money" t-on-input="(ev) => this.onLineMoneyInput(ev, line, () => this.onHomeexpInput(line))" placeholder="Money"/></td>
                                         <td class="no-print">
                                             <button class="remove-row-btn" t-on-click="() => this.removeHomeexpRow(line_index)">✕</button>
                                         </td>
@@ -971,12 +976,12 @@
                     <div>
                         <h1 style="margin: 0; font-size: 20px; font-weight: 800; color: #2c3e50; text-transform: uppercase; letter-spacing: 0.5px;">DAILY SALE SHEET</h1>
                         <div style="font-size: 11px; color: #666; margin-top: 2px;">
-                            Date: <strong style="color: #0f172a;"><t t-esc="state.date"/></strong>
+                            Date: <strong style="color: #0f172a;"><t t-esc="state.date"/><t t-if="dayName"> (<t t-esc="dayName"/>)</t></strong>
                         </div>
                     </div>
                     <div style="text-align: right;">
                         <div style="font-size: 12px; font-weight: 700; color: #2c3e50; background: #f1f5f9; padding: 4px 10px; border: 1px solid #cbd5e1; border-radius: 4px; display: inline-block;">
-                            Date: <span style="color: #0f172a;"><t t-esc="state.date"/></span>
+                            Date: <span style="color: #0f172a;"><t t-esc="state.date"/><t t-if="dayName"> (<t t-esc="dayName"/>)</t></span>
                         </div>
                     </div>
                 </div>
@@ -1023,7 +1028,7 @@
                                             </t>
                                         </td>
                                         <td style="border: 1px solid #cbd5e1; padding: 5px 4px; text-align: center; color: #475569;"><t t-esc="line.unit || 'Meter'"/></td>
-                                        <td style="border: 1px solid #cbd5e1; padding: 5px 4px; text-align: right;"><t t-esc="line.price || '0'"/></td>
+                                        <td style="border: 1px solid #cbd5e1; padding: 5px 4px; text-align: right;"><t t-esc="line.price ? formatVal(line.price) : '0'"/></td>
                                         <td style="border: 1px solid #cbd5e1; padding: 5px 6px; text-align: right; font-weight: 700; color: #166534;"><t t-esc="formatVal(line.total)"/></td>
                                         <td style="border: 1px solid #cbd5e1; padding: 5px 6px; text-align: left; font-size: 9.5px; color: #334155;">
                                             <t t-esc="line.note || ''"/>

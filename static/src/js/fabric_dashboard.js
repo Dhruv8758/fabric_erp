@@ -4,6 +4,7 @@ import { Component, useState, onWillStart, onMounted, onWillUnmount } from "@odo
 import { registry } from "@web/core/registry";
 import { rpc } from "@web/core/network/rpc";
 import { useService } from "@web/core/utils/hooks";
+import { formatAmount, parseAmount, applyFormattedInput } from "./fabric_amount_utils";
 
 export class FabricDashboard extends Component {
     static template = "fabric_erp.FabricDashboard";
@@ -143,8 +144,13 @@ export class FabricDashboard extends Component {
     }
 
     formatNum(num) {
-        if (num === undefined || num === null) return "0";
-        return Number(num).toLocaleString('en-IN').replace(/[^0-9.,-]/g, '').trim();
+        return formatAmount(num);
+    }
+
+    onNoteAmountInput(ev) {
+        applyFormattedInput(ev, (val) => {
+            this.state.newNoteAmount = val;
+        });
     }
 
     openDailySaleSheet(section) {
@@ -256,13 +262,13 @@ export class FabricDashboard extends Component {
     }
 
     get totalTempNotesAmount() {
-        return (this.state.tempNotes || []).reduce((sum, n) => sum + (parseFloat(n.amount) || 0), 0);
+        return (this.state.tempNotes || []).reduce((sum, n) => sum + parseAmount(n.amount), 0);
     }
 
     get totalCreditedAmount() {
         return (this.state.tempNotes || [])
             .filter(n => n.isCredited)
-            .reduce((sum, n) => sum + (parseFloat(n.amount) || 0), 0);
+            .reduce((sum, n) => sum + parseAmount(n.amount), 0);
     }
 
     get creditedCount() {
@@ -320,7 +326,7 @@ export class FabricDashboard extends Component {
         const meterVal = parseFloat(this.state.newNoteMeter) || 0;
         const unitVal = this.state.newNoteUnit || 'Meter';
         const breakdownVal = this.state.visitRollBreakdownStr || '';
-        const amt = parseFloat(this.state.newNoteAmount) || 0;
+        const amt = parseAmount(this.state.newNoteAmount);
         const isCred = Boolean(asCredited || this.state.newNoteCredited);
 
         try {

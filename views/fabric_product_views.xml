@@ -50,7 +50,7 @@
                             <field name="unit" invisible="1"/>
                         </group>
                         <group>
-                            <field name="price_per_unit"/>
+                            <field name="price_per_unit" widget="fabric_amount"/>
                         </group>
                     </group>
                 </sheet>
@@ -68,7 +68,7 @@
                 <field name="name"/>
                 <field name="code"/>
                 <field name="unit"/>
-                <field name="price_per_unit"/>
+                <field name="price_per_unit" widget="fabric_amount"/>
                 <field name="quantity" string="In Stock"/>
             </list>
         </field>
