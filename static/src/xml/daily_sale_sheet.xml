@@ -600,13 +600,13 @@
                                         <td class="text-center align-middle">
                                             <div class="d-flex align-items-center justify-content-center gap-1">
                                                 <div class="form-check form-switch d-inline-block m-0 align-middle">
-                                                    <input class="form-check-input" type="checkbox" role="switch" t-model="line.is_khata" t-on-change="() => this.onToggleKhata(line)" title="Toggle Khata Jama (Credit Entry)"/>
+                                                    <input class="form-check-input" type="checkbox" role="switch" t-att-checked="line.is_khata" t-on-click="(ev) => this.onKhataCheckboxClick(line, ev, 'jama')" title="Toggle Khata Jama (Credit Entry)"/>
                                                 </div>
                                                 <t t-if="line.is_khata">
-                                                    <span class="badge bg-success text-white border ms-1" style="font-size:10px; padding: 4px 6px;" title="Credit / Jama entry created in Customer Khata"><i class="fa fa-check-circle me-1"></i>Khata ON (Jama)</span>
+                                                    <span class="badge bg-success text-white border ms-1" style="font-size:10px; padding: 4px 6px; cursor: pointer;" t-on-click="() => this.toggleKhataSync(line, 'jama')" title="Click to turn Khata sync off"><i class="fa fa-check-circle me-1"></i>Khata ON (Jama)</span>
                                                 </t>
                                                 <t t-else="">
-                                                    <span class="badge bg-secondary text-white opacity-50 ms-1" style="font-size:9px;" title="Khata sync off">Khata OFF</span>
+                                                    <span class="badge bg-secondary text-white opacity-75 ms-1" style="font-size:9px; cursor: pointer;" t-on-click="() => this.toggleKhataSync(line, 'jama')" title="Click to turn Khata sync on">Khata OFF</span>
                                                 </t>
                                             </div>
                                         </td>
@@ -701,13 +701,13 @@
                                         <td class="text-center align-middle">
                                             <div class="d-flex align-items-center justify-content-center gap-1">
                                                 <div class="form-check form-switch d-inline-block m-0 align-middle">
-                                                    <input class="form-check-input" type="checkbox" role="switch" t-model="line.is_khata" t-on-change="() => this.onToggleKhata(line)" title="Toggle Khata Udhaar (Debit Entry)"/>
+                                                    <input class="form-check-input" type="checkbox" role="switch" t-att-checked="line.is_khata" t-on-click="(ev) => this.onKhataCheckboxClick(line, ev, 'udhaar')" title="Toggle Khata Udhaar (Debit Entry)"/>
                                                 </div>
                                                 <t t-if="line.is_khata">
-                                                    <span class="badge bg-danger text-white border ms-1" style="font-size:10px; padding: 4px 6px;" title="Debit / Udhaar entry created in Customer Khata"><i class="fa fa-minus-circle me-1"></i>Khata ON (Udhaar)</span>
+                                                    <span class="badge bg-danger text-white border ms-1" style="font-size:10px; padding: 4px 6px; cursor: pointer;" t-on-click="() => this.toggleKhataSync(line, 'udhaar')" title="Click to turn Khata sync off"><i class="fa fa-minus-circle me-1"></i>Khata ON (Udhaar)</span>
                                                 </t>
                                                 <t t-else="">
-                                                    <span class="badge bg-secondary text-white opacity-50 ms-1" style="font-size:9px;" title="Khata sync off">Khata OFF</span>
+                                                    <span class="badge bg-secondary text-white opacity-75 ms-1" style="font-size:9px; cursor: pointer;" t-on-click="() => this.toggleKhataSync(line, 'udhaar')" title="Click to turn Khata sync on">Khata OFF</span>
                                                 </t>
                                             </div>
                                         </td>

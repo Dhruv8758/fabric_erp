@@ -521,7 +521,78 @@ export class DailySaleSheetComponent extends Component {
         this.triggerAutoSave();
     }
 
+    canEnableKhata(line) {
+        if (!line) return false;
+        if (line.is_custom_customer) return false;
+        const name = (line.customer_name || '').trim();
+        if (!name || name === '__new__') return false;
+        const match = (this.state.customers || []).find(c => {
+            if (!c || !c.name) return false;
+            if (c.name.trim().toLowerCase() !== name.toLowerCase()) return false;
+            const idNum = Number(c.id);
+            return !isNaN(idNum) && Number.isInteger(idNum) && idNum > 0 && !String(c.id).includes('.');
+        });
+        return Boolean(match);
+    }
+
+    showKhataCustomerWarning(line) {
+        const cName = (line && line.customer_name ? line.customer_name : '').trim();
+        let msg = "Cannot enable Khata Sync: Customer does not exist in Customer Khata.";
+        if (!cName || cName === '__new__') {
+            msg = "Cannot enable Khata Sync: Please select an existing customer first.";
+        } else if (line && line.is_custom_customer) {
+            msg = `Cannot enable Khata Sync: Customer "${cName}" is not saved yet. Please click the checkmark (✓) button to create the customer first.`;
+        } else {
+            msg = `Cannot enable Khata Sync: Customer "${cName}" does not exist in Customer Khata. Please select an existing customer or click "Add New Customer" to create them.`;
+        }
+        if (this.notification) {
+            this.notification.add(msg, { type: "danger" });
+        } else {
+            alert(msg);
+        }
+    }
+
+    onKhataCheckboxClick(line, ev, entryType = 'jama') {
+        const nextState = ev && ev.target ? ev.target.checked : !line.is_khata;
+        if (nextState) {
+            if (!this.canEnableKhata(line)) {
+                if (ev && ev.preventDefault) {
+                    ev.preventDefault();
+                }
+                if (ev && ev.target) {
+                    ev.target.checked = false;
+                }
+                line.is_khata = false;
+                this.showKhataCustomerWarning(line);
+                return;
+            }
+            line.is_khata = true;
+        } else {
+            line.is_khata = false;
+        }
+        this.triggerAutoSave();
+    }
+
+    toggleKhataSync(line, entryType = 'jama') {
+        if (!line.is_khata) {
+            if (!this.canEnableKhata(line)) {
+                line.is_khata = false;
+                this.showKhataCustomerWarning(line);
+                return;
+            }
+            line.is_khata = true;
+        } else {
+            line.is_khata = false;
+        }
+        this.triggerAutoSave();
+    }
+
     onToggleKhata(line) {
+        if (line.is_khata && !this.canEnableKhata(line)) {
+            line.is_khata = false;
+            this.showKhataCustomerWarning(line);
+            return;
+        }
         this.triggerAutoSave();
     }
 
@@ -1062,9 +1133,13 @@ export class DailySaleSheetComponent extends Component {
         if (val === '__new__') {
             line.is_custom_customer = true;
             line.customer_name = '';
+            line.is_khata = false;
         } else {
             line.is_custom_customer = false;
             line.customer_name = val;
+            if (line.is_khata && !this.canEnableKhata(line)) {
+                line.is_khata = false;
+            }
             this.onCashinInput(line);
         }
     }
@@ -1072,6 +1147,7 @@ export class DailySaleSheetComponent extends Component {
     cancelCustomCashin(line) {
         line.is_custom_customer = false;
         line.customer_name = '';
+        line.is_khata = false;
     }
 
     async saveCustomCashinCustomer(line) {
@@ -1111,9 +1187,13 @@ export class DailySaleSheetComponent extends Component {
         if (val === '__new__') {
             line.is_custom_customer = true;
             line.customer_name = '';
+            line.is_khata = false;
         } else {
             line.is_custom_customer = false;
             line.customer_name = val;
+            if (line.is_khata && !this.canEnableKhata(line)) {
+                line.is_khata = false;
+            }
             this.onCashoutInput(line);
         }
     }
@@ -1121,6 +1201,7 @@ export class DailySaleSheetComponent extends Component {
     cancelCustomCashout(line) {
         line.is_custom_customer = false;
         line.customer_name = '';
+        line.is_khata = false;
     }
 
     async saveCustomCashoutCustomer(line) {

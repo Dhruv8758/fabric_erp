@@ -63,3 +63,4 @@ export const fabricAmountField = {
 
 registry.category("formatters").add("fabric_amount", formatFabricAmount);
 registry.category("fields").add("fabric_amount", fabricAmountField);
+

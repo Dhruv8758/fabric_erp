@@ -498,8 +498,10 @@ class FabricErpController(http.Controller):
             cust_rec = False
             if target_cust_name:
                 cust_rec = cust_model.search([('name', '=ilike', target_cust_name)], limit=1)
-                if not cust_rec and (is_khata or c_name) and not is_silent:
-                    cust_rec = cust_model.create({'name': target_cust_name})
+
+            # Khata Sync is strictly prevented if the customer does not exist in Khata
+            if not cust_rec:
+                is_khata = False
 
             vals = {
                 'customer_id': cust_rec.id if cust_rec else False,
@@ -531,12 +533,13 @@ class FabricErpController(http.Controller):
                 continue
 
             target_cust_name = c_name
-
             cust_rec = False
             if target_cust_name:
                 cust_rec = cust_model.search([('name', '=ilike', target_cust_name)], limit=1)
-                if not cust_rec and (is_khata or c_name) and not is_silent:
-                    cust_rec = cust_model.create({'name': target_cust_name})
+
+            # Khata Sync is strictly prevented if the customer does not exist in Khata
+            if not cust_rec:
+                is_khata = False
 
             vals = {
                 'customer_id': cust_rec.id if cust_rec else False,
