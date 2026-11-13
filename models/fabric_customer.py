@@ -58,7 +58,11 @@ class FabricCustomer(models.Model):
             cust.status = 'udhaar_due' if cust.current_net_balance > 0.01 else 'clear'
             
             dates = [t.date for t in cust.transaction_ids if t.date]
-            cust.last_activity_date = max(dates).date() if dates else fields.Date.today()
+            if dates:
+                m_date = max(dates)
+                cust.last_activity_date = m_date.date() if hasattr(m_date, 'date') else m_date
+            else:
+                cust.last_activity_date = fields.Date.today()
 
     def action_view_ledger(self):
         self.ensure_one()

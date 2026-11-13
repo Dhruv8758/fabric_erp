@@ -4,6 +4,8 @@ import { registry } from "@web/core/registry";
 import { formatFloat } from "@web/views/fields/formatters";
 import { parseFloat as parseOdooFloat } from "@web/views/fields/parsers";
 import { FloatField, floatField } from "@web/views/fields/float/float_field";
+import { useEffect } from "@odoo/owl";
+import { formatLiveAmountString } from "./fabric_amount_utils";
 
 const THREE_DIGIT_FORMAT_OPTIONS = {
     grouping: [3, 0],
@@ -21,6 +23,44 @@ export function formatFabricAmount(value, options = {}) {
 formatFabricAmount.extractOptions = formatFloat.extractOptions;
 
 export class FabricAmountField extends FloatField {
+    setup() {
+        super.setup();
+        useEffect(
+            (inputEl) => {
+                if (!inputEl) return;
+                const handleLiveInput = () => {
+                    const raw = inputEl.value || "";
+                    if (raw.startsWith("=")) return;
+                    const selStart = inputEl.selectionStart;
+                    let meaningfulBefore = 0;
+                    if (typeof selStart === "number") {
+                        for (let i = 0; i < selStart; i++) {
+                            if (/[0-9.-]/.test(raw[i])) meaningfulBefore++;
+                        }
+                    }
+                    const formatted = formatLiveAmountString(raw);
+                    if (inputEl.value !== formatted) {
+                        inputEl.value = formatted;
+                    }
+                    if (typeof selStart === "number" && document.activeElement === inputEl) {
+                        let pos = 0;
+                        let seen = 0;
+                        while (pos < formatted.length && seen < meaningfulBefore) {
+                            if (/[0-9.-]/.test(formatted[pos])) seen++;
+                            pos++;
+                        }
+                        try {
+                            inputEl.setSelectionRange(pos, pos);
+                        } catch (_) {}
+                    }
+                };
+                inputEl.addEventListener("input", handleLiveInput);
+                return () => inputEl.removeEventListener("input", handleLiveInput);
+            },
+            () => [this.inputRef && this.inputRef.el]
+        );
+    }
+
     parse(value) {
         if (this.props.inputType === "number") {
             return Number(value);

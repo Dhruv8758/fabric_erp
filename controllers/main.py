@@ -142,6 +142,7 @@ class FabricErpController(http.Controller):
             for line in s.sale_line_ids:
                 c_name = line.customer_name or line.item_name or 'Cash Customer'
                 recent_sales.append({
+                    'id': f"sale_{line.id}",
                     'bill_no': f"DS-{line.id + 10000}-1",
                     'customer': c_name,
                     'item': line.item_name or '',
@@ -163,6 +164,7 @@ class FabricErpController(http.Controller):
         for s in target_sheets_exp:
             for line in s.shopexp_line_ids:
                 recent_expenses.append({
+                    'id': f"shopexp_{line.id}",
                     'category': 'Shop Expense',
                     'name': line.note or 'Shop Expense',
                     'note': 'Cash / Operating',
@@ -171,8 +173,11 @@ class FabricErpController(http.Controller):
                 })
                 if len(recent_expenses) >= 15:
                     break
+            if len(recent_expenses) >= 15:
+                break
             for line in s.homeexp_line_ids:
                 recent_expenses.append({
+                    'id': f"homeexp_{line.id}",
                     'category': 'Home Expense',
                     'name': line.note or 'Home Expense',
                     'note': 'Personal Expense',

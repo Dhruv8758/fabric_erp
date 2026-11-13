@@ -9,7 +9,7 @@ class FabricKhataTransaction(models.Model):
     customer_id = fields.Many2one('fabric.customer', string='Customer', required=True, ondelete='cascade', tracking=True)
     company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company)
     currency_id = fields.Many2one('res.currency', related='company_id.currency_id', string='Currency')
-    date = fields.Datetime(string='Date & Time', default=fields.Datetime.now, required=True, tracking=True)
+    date = fields.Date(string='Date', default=fields.Date.context_today, required=True, tracking=True)
     entry_type = fields.Selection([
         ('jama', 'Jama (Payment Received)'),
         ('udhaar', 'Udhaar (Credit Sale)')
@@ -25,14 +25,14 @@ class FabricKhataTransaction(models.Model):
 
     cash_in = fields.Float(string='Cash In (Jama)', compute='_compute_display_format', store=True)
     cash_out = fields.Float(string='Cash Out (Udhaar)', compute='_compute_display_format', store=True)
-    display_date = fields.Char(string='Date & Time', compute='_compute_display_format', store=True)
+    display_date = fields.Char(string='Date', compute='_compute_display_format', store=True)
     signed_amount = fields.Float(string='Net Amount', compute='_compute_display_format', store=True)
 
     @api.depends('date', 'amount', 'entry_type')
     def _compute_display_format(self):
         for tx in self:
             if tx.date:
-                tx.display_date = tx.date.strftime('%d-%b-%Y %I:%M %p')
+                tx.display_date = tx.date.strftime('%d-%b-%Y')
             else:
                 tx.display_date = ''
             
@@ -69,6 +69,7 @@ class FabricKhataTransactionWizard(models.TransientModel):
     _description = 'Wizard for Quick Khata Entry'
 
     customer_id = fields.Many2one('fabric.customer', string='Customer', required=True)
+    date = fields.Date(string='Date', default=fields.Date.context_today, required=True)
     entry_type = fields.Selection([
         ('jama', 'Jama (Payment Received)'),
         ('udhaar', 'Udhaar (Credit Sale)')
@@ -86,6 +87,7 @@ class FabricKhataTransactionWizard(models.TransientModel):
         self.ensure_one()
         self.env['fabric.khata.transaction'].create({
             'customer_id': self.customer_id.id,
+            'date': self.date or fields.Date.context_today(self),
             'entry_type': self.entry_type,
             'particulars': self.particulars,
             'payment_method': self.payment_method,
