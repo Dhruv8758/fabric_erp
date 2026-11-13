@@ -17,9 +17,9 @@
                 <field name="name" string="Customer Name &amp; Contact"/>
                 <field name="phone"/>
 
-                <field name="total_sales" string="Total Cash Out" widget="fabric_amount"/>
-                <field name="paid_amount" string="Total Cash In" widget="fabric_amount"/>
-                <field name="current_net_balance" string="Current Net Balance" widget="fabric_amount"/>
+                <field name="total_sales" string="Total Cash Out (Udhaar)" widget="fabric_amount" sum="Total Cash Out"/>
+                <field name="paid_amount" string="Total Cash In (Jama)" widget="fabric_amount" sum="Total Cash In"/>
+                <field name="current_net_balance" string="Current Udhar Balance" widget="fabric_amount" sum="Total Udhar Balance"/>
                 <field name="status" widget="badge" decoration-danger="status == 'udhaar_due'" decoration-success="status == 'clear'"/>
                 <button name="action_view_ledger" string="View Form ›" type="object" class="btn-outline-primary btn-sm"/>
             </list>
@@ -108,7 +108,7 @@
                                         <h4 class="fw-bold text-success m-0 mt-1"><field name="paid_amount" widget="fabric_amount"/></h4>
                                     </div>
                                     <div class="col-4">
-                                        <span class="text-muted small fw-bold text-uppercase d-block">CURRENT NET BALANCE</span>
+                                        <span class="text-muted small fw-bold text-uppercase d-block">CURRENT UDHAR BALANCE</span>
                                         <h4 class="fw-bold text-danger m-0 mt-1"><field name="current_net_balance" widget="fabric_amount"/></h4>
                                     </div>
                                 </div>
@@ -128,9 +128,9 @@
                                 <field name="entry_type" widget="badge" decoration-success="entry_type == 'jama'" decoration-danger="entry_type == 'udhaar'"/>
                                 <field name="particulars"/>
                                 <field name="payment_method"/>
-                                <field name="cash_in" string="Cash In" widget="fabric_amount" sum="Total In" decoration-success="cash_in &gt; 0" decoration-muted="cash_in == 0"/>
-                                <field name="cash_out" string="Cash Out" widget="fabric_amount" sum="Total Out" decoration-danger="cash_out &gt; 0" decoration-muted="cash_out == 0"/>
-                                <field name="signed_amount" string="Net Balance" sum="Net Balance" widget="fabric_amount"/>
+                                <field name="cash_in" string="Cash In (Jama)" widget="fabric_amount" sum="Total Cash In" decoration-success="cash_in &gt; 0" decoration-muted="cash_in == 0"/>
+                                <field name="cash_out" string="Cash Out (Udhaar)" widget="fabric_amount" sum="Total Cash Out" decoration-danger="cash_out &gt; 0" decoration-muted="cash_out == 0"/>
+                                <field name="signed_amount" string="Udhar / Net Balance" sum="Total Udhar Balance" widget="fabric_amount"/>
                                 <button name="action_open_transaction" type="object" icon="fa-external-link" string="Open" title="Open Transaction Details"/>
                             </list>
                         </field>
@@ -212,9 +212,9 @@
                 <field name="entry_type" widget="badge" decoration-success="entry_type == 'jama'" decoration-danger="entry_type == 'udhaar'"/>
                 <field name="particulars"/>
                 <field name="payment_method"/>
-                <field name="cash_in" string="Cash In" widget="fabric_amount" sum="Total In" decoration-success="cash_in &gt; 0" decoration-muted="cash_in == 0"/>
-                <field name="cash_out" string="Cash Out" widget="fabric_amount" sum="Total Out" decoration-danger="cash_out &gt; 0" decoration-muted="cash_out == 0"/>
-                <field name="signed_amount" string="Net Balance" sum="Net Balance" widget="fabric_amount"/>
+                <field name="cash_in" string="Cash In (Jama)" widget="fabric_amount" sum="Total Cash In" decoration-success="cash_in &gt; 0" decoration-muted="cash_in == 0"/>
+                <field name="cash_out" string="Cash Out (Udhaar)" widget="fabric_amount" sum="Total Cash Out" decoration-danger="cash_out &gt; 0" decoration-muted="cash_out == 0"/>
+                <field name="signed_amount" string="Udhar / Net Balance" sum="Total Udhar Balance" widget="fabric_amount"/>
             </list>
         </field>
     </record>
