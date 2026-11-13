@@ -11,7 +11,7 @@
         <field name="name">fabric.customer.tree</field>
         <field name="model">fabric.customer</field>
         <field name="arch" type="xml">
-            <list string="Customer Khata Accounts Directory">
+            <list string="Customer Khata Accounts Directory" default_order="id asc">
                 <field name="currency_id" column_invisible="1"/>
                 <field name="code"/>
                 <field name="name" string="Customer Name &amp; Contact"/>

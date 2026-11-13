@@ -248,7 +248,7 @@ class FabricErpController(http.Controller):
 
     @http.route('/fabric_erp/get_customers', type='json', auth='user')
     def get_customers(self):
-        customers = request.env['fabric.customer'].sudo().search_read([], ['id', 'name', 'phone', 'current_net_balance'])
+        customers = request.env['fabric.customer'].sudo().search_read([], ['id', 'name', 'phone', 'current_net_balance'], order='id asc')
         return customers
 
     @http.route('/fabric_erp/create_customer', type='json', auth='user')
@@ -648,7 +648,7 @@ class FabricErpController(http.Controller):
             })
 
         products = request.env['fabric.product'].sudo().search_read([], ['id', 'name', 'code', 'unit', 'price_per_unit', 'quantity'])
-        customers = request.env['fabric.customer'].sudo().search_read([], ['id', 'name', 'phone', 'current_net_balance'])
+        customers = request.env['fabric.customer'].sudo().search_read([], ['id', 'name', 'phone', 'current_net_balance'], order='id asc')
         saved_sale_lines = [{
             'id': l.id,
             'customer_name': l.customer_name or '',
