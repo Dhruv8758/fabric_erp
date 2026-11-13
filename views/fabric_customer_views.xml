@@ -17,8 +17,8 @@
                 <field name="name" string="Customer Name &amp; Contact"/>
                 <field name="phone"/>
 
-                <field name="total_sales" string="Total Sales" widget="fabric_amount"/>
-                <field name="paid_amount" string="Paid Amount" widget="fabric_amount"/>
+                <field name="total_sales" string="Total Cash Out" widget="fabric_amount"/>
+                <field name="paid_amount" string="Total Cash In" widget="fabric_amount"/>
                 <field name="current_net_balance" string="Current Net Balance" widget="fabric_amount"/>
                 <field name="status" widget="badge" decoration-danger="status == 'udhaar_due'" decoration-success="status == 'clear'"/>
                 <button name="action_view_ledger" string="View Form ›" type="object" class="btn-outline-primary btn-sm"/>
@@ -100,11 +100,11 @@
                                 </h5>
                                 <div class="row text-center mt-2">
                                     <div class="col-4 border-end">
-                                        <span class="text-muted small fw-bold text-uppercase d-block">TOTAL SALES</span>
+                                        <span class="text-muted small fw-bold text-uppercase d-block">TOTAL CASH OUT (UDHAAR)</span>
                                         <h4 class="fw-bold text-dark m-0 mt-1"><field name="total_sales" widget="fabric_amount"/></h4>
                                     </div>
                                     <div class="col-4 border-end">
-                                        <span class="text-muted small fw-bold text-uppercase d-block">PAYMENTS RECEIVED</span>
+                                        <span class="text-muted small fw-bold text-uppercase d-block">TOTAL CASH IN (JAMA)</span>
                                         <h4 class="fw-bold text-success m-0 mt-1"><field name="paid_amount" widget="fabric_amount"/></h4>
                                     </div>
                                     <div class="col-4">
@@ -128,7 +128,9 @@
                                 <field name="entry_type" widget="badge" decoration-success="entry_type == 'jama'" decoration-danger="entry_type == 'udhaar'"/>
                                 <field name="particulars"/>
                                 <field name="payment_method"/>
-                                <field name="signed_amount" sum="Net Balance" widget="fabric_amount"/>
+                                <field name="cash_in" string="Cash In" widget="fabric_amount" sum="Total In" decoration-success="cash_in &gt; 0" decoration-muted="cash_in == 0"/>
+                                <field name="cash_out" string="Cash Out" widget="fabric_amount" sum="Total Out" decoration-danger="cash_out &gt; 0" decoration-muted="cash_out == 0"/>
+                                <field name="signed_amount" string="Net Balance" sum="Net Balance" widget="fabric_amount"/>
                                 <button name="action_open_transaction" type="object" icon="fa-external-link" string="Open" title="Open Transaction Details"/>
                             </list>
                         </field>
@@ -184,6 +186,8 @@
                         </group>
                         <group>
                             <field name="amount" widget="fabric_amount"/>
+                            <field name="cash_in" widget="fabric_amount" readonly="1"/>
+                            <field name="cash_out" widget="fabric_amount" readonly="1"/>
                             <field name="payment_method"/>
                         </group>
                     </group>
@@ -193,6 +197,25 @@
                 </sheet>
                 <chatter/>
             </form>
+        </field>
+    </record>
+
+    <!-- KHATA TRANSACTION TREE / LIST VIEW -->
+    <record id="view_fabric_khata_transaction_tree" model="ir.ui.view">
+        <field name="name">fabric.khata.transaction.tree</field>
+        <field name="model">fabric.khata.transaction</field>
+        <field name="arch" type="xml">
+            <list string="Khata Transactions" default_order="date desc, id desc">
+                <field name="currency_id" column_invisible="1"/>
+                <field name="display_date"/>
+                <field name="customer_id"/>
+                <field name="entry_type" widget="badge" decoration-success="entry_type == 'jama'" decoration-danger="entry_type == 'udhaar'"/>
+                <field name="particulars"/>
+                <field name="payment_method"/>
+                <field name="cash_in" string="Cash In" widget="fabric_amount" sum="Total In" decoration-success="cash_in &gt; 0" decoration-muted="cash_in == 0"/>
+                <field name="cash_out" string="Cash Out" widget="fabric_amount" sum="Total Out" decoration-danger="cash_out &gt; 0" decoration-muted="cash_out == 0"/>
+                <field name="signed_amount" string="Net Balance" sum="Net Balance" widget="fabric_amount"/>
+            </list>
         </field>
     </record>
 
@@ -207,6 +230,6 @@
     <record id="action_fabric_khata_transaction" model="ir.actions.act_window">
         <field name="name">Khata Transactions</field>
         <field name="res_model">fabric.khata.transaction</field>
-        <field name="view_mode">list</field>
+        <field name="view_mode">list,form</field>
     </record>
 </odoo>

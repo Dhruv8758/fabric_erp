@@ -16,8 +16,8 @@ class FabricCustomer(models.Model):
     
     transaction_ids = fields.One2many('fabric.khata.transaction', 'customer_id', string='Khata Transactions')
     
-    total_sales = fields.Float(compute='_compute_khata_totals', string='Total Sales', store=True, tracking=True)
-    paid_amount = fields.Float(compute='_compute_khata_totals', string='Paid Amount', store=True, tracking=True)
+    total_sales = fields.Float(compute='_compute_khata_totals', string='Total Cash Out (Udhaar)', store=True, tracking=True)
+    paid_amount = fields.Float(compute='_compute_khata_totals', string='Total Cash In (Jama)', store=True, tracking=True)
     current_net_balance = fields.Float(compute='_compute_khata_totals', string='Current Net Balance', store=True, tracking=True)
     
     status = fields.Selection([
@@ -129,9 +129,10 @@ class FabricCustomer(models.Model):
 
             for i, tx in enumerate(txs):
                 t_date = tx.date.strftime('%d-%b-%Y') if tx.date else ''
-                t_type = 'Udhaar' if tx.entry_type == 'udhaar' else 'Jama'
+                t_type = 'Cash Out (Udhaar)' if tx.entry_type == 'udhaar' else 'Cash In (Jama)'
                 particulars = tx.particulars or ''
-                msg += f"{i+1}. {t_date} | {t_type} | {fmt_amt(tx.amount)} | {particulars}\n"
+                in_out_amt = f"In: {fmt_amt(tx.cash_in)}" if tx.entry_type == 'jama' else f"Out: {fmt_amt(tx.cash_out)}"
+                msg += f"{i+1}. {t_date} | {t_type} | {in_out_amt} | {particulars}\n"
         else:
             msg += "No transactions found.\n"
             

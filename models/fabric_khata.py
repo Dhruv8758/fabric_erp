@@ -23,6 +23,8 @@ class FabricKhataTransaction(models.Model):
     ], string='Payment Method', default='cash', required=True, tracking=True)
     amount = fields.Float(string='Amount', required=True, tracking=True)
 
+    cash_in = fields.Float(string='Cash In (Jama)', compute='_compute_display_format', store=True)
+    cash_out = fields.Float(string='Cash Out (Udhaar)', compute='_compute_display_format', store=True)
     display_date = fields.Char(string='Date & Time', compute='_compute_display_format', store=True)
     signed_amount = fields.Float(string='Net Amount', compute='_compute_display_format', store=True)
 
@@ -34,10 +36,18 @@ class FabricKhataTransaction(models.Model):
             else:
                 tx.display_date = ''
             
-            if tx.entry_type == 'udhaar':
-                tx.signed_amount = tx.amount
+            if tx.entry_type == 'jama':
+                tx.cash_in = tx.amount or 0.0
+                tx.cash_out = 0.0
+                tx.signed_amount = -(tx.amount or 0.0)
+            elif tx.entry_type == 'udhaar':
+                tx.cash_in = 0.0
+                tx.cash_out = tx.amount or 0.0
+                tx.signed_amount = tx.amount or 0.0
             else:
-                tx.signed_amount = -tx.amount
+                tx.cash_in = 0.0
+                tx.cash_out = 0.0
+                tx.signed_amount = 0.0
 
 
 
