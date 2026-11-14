@@ -39,19 +39,36 @@ class FabricKhataTransaction(models.Model):
             if tx.entry_type == 'jama':
                 tx.cash_in = tx.amount or 0.0
                 tx.cash_out = 0.0
-                tx.signed_amount = -(tx.amount or 0.0)
+                tx.signed_amount = tx.amount or 0.0
             elif tx.entry_type == 'udhaar':
                 tx.cash_in = 0.0
                 tx.cash_out = tx.amount or 0.0
-                tx.signed_amount = tx.amount or 0.0
+                tx.signed_amount = -(tx.amount or 0.0)
             else:
                 tx.cash_in = 0.0
                 tx.cash_out = 0.0
                 tx.signed_amount = 0.0
 
+    def unlink(self):
+        customers = self.mapped('customer_id')
+        cashin_lines = self.env['fabric.daily.cashin.line'].search([('khata_transaction_id', 'in', self.ids)])
+        if cashin_lines:
+            cashin_lines.write({'is_khata': False, 'khata_transaction_id': False})
+        cashout_lines = self.env['fabric.daily.cashout.line'].search([('khata_transaction_id', 'in', self.ids)])
+        if cashout_lines:
+            cashout_lines.write({'is_khata': False, 'khata_transaction_id': False})
+        res = super().unlink()
+        if customers:
+            customers._compute_khata_totals()
+        return res
 
-
-
+    def action_delete_transaction(self):
+        self.ensure_one()
+        self.unlink()
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'reload',
+        }
 
     def action_open_transaction(self):
         self.ensure_one()

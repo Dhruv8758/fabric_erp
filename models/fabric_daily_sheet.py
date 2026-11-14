@@ -170,7 +170,7 @@ class FabricDailyCashinLine(models.Model):
     note = fields.Char(string='Name / Note')
     money = fields.Float(string='Money', required=True)
     is_khata = fields.Boolean(string='Khata Sync (Jama)', default=False)
-    khata_transaction_id = fields.Many2one('fabric.khata.transaction', string='Khata Entry', copy=False, ondelete='cascade')
+    khata_transaction_id = fields.Many2one('fabric.khata.transaction', string='Khata Entry', copy=False, ondelete='set null')
 
     def _sync_khata(self):
         for line in self:
@@ -225,7 +225,7 @@ class FabricDailyCashoutLine(models.Model):
     note = fields.Char(string='Name / Note')
     money = fields.Float(string='Money', required=True)
     is_khata = fields.Boolean(string='Khata Sync (Udhaar)', default=False)
-    khata_transaction_id = fields.Many2one('fabric.khata.transaction', string='Khata Entry', copy=False, ondelete='cascade')
+    khata_transaction_id = fields.Many2one('fabric.khata.transaction', string='Khata Entry', copy=False, ondelete='set null')
 
     def _sync_khata(self):
         for line in self:

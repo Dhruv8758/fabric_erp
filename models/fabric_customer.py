@@ -55,8 +55,8 @@ class FabricCustomer(models.Model):
             
             cust.total_sales = udhaar_total
             cust.paid_amount = jama_total
-            cust.current_net_balance = udhaar_total - jama_total
-            cust.status = 'udhaar_due' if cust.current_net_balance > 0.01 else 'clear'
+            cust.current_net_balance = jama_total - udhaar_total
+            cust.status = 'udhaar_due' if cust.current_net_balance < -0.01 else 'clear'
             
             dates = [t.date for t in cust.transaction_ids if t.date]
             if dates:

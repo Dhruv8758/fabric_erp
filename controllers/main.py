@@ -133,7 +133,7 @@ class FabricErpController(http.Controller):
 
         # Realtime Customer Udhaar Due
         customers = request.env['fabric.customer'].sudo().search([])
-        udhaar_due = sum(c.current_net_balance for c in customers) if customers else 0.0
+        udhaar_due = sum(abs(c.current_net_balance) for c in customers if c.current_net_balance < -0.01) if customers else 0.0
 
         # Filtered Sales entries
         recent_sales = []
