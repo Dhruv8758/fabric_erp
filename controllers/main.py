@@ -468,7 +468,7 @@ class FabricErpController(http.Controller):
                 'customer_id': cust_rec.id if cust_rec else False,
                 'customer_name': c_name,
                 'product_id': prod_rec.id if prod_rec else False,
-                'item_name': i_name or '(Draft)',
+                'item_name': i_name or '',
                 'roll_qty': roll_qty,
                 'qty': qty,
                 'unit': unit,
@@ -511,7 +511,7 @@ class FabricErpController(http.Controller):
             vals = {
                 'customer_id': cust_rec.id if cust_rec else False,
                 'customer_name': target_cust_name,
-                'note': note_val or '(Draft)',
+                'note': note_val or '',
                 'money': money_val,
                 'is_khata': is_khata
             }
@@ -549,7 +549,7 @@ class FabricErpController(http.Controller):
             vals = {
                 'customer_id': cust_rec.id if cust_rec else False,
                 'customer_name': target_cust_name,
-                'note': note_val or '(Draft)',
+                'note': note_val or '',
                 'money': money_val,
                 'is_khata': is_khata
             }
@@ -572,7 +572,7 @@ class FabricErpController(http.Controller):
             if not n_val and m_val == 0:
                 continue
             vals = {
-                'note': n_val or '(Draft)',
+                'note': n_val or 'Shop Expense',
                 'money': m_val
             }
             line_id = l.get('id')
@@ -594,7 +594,7 @@ class FabricErpController(http.Controller):
             if not n_val and m_val == 0:
                 continue
             vals = {
-                'note': n_val or '(Draft)',
+                'note': n_val or 'Shop Expense',
                 'money': m_val
             }
             line_id = l.get('id')

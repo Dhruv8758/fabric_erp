@@ -167,7 +167,7 @@ class FabricDailyCashinLine(models.Model):
     sequence = fields.Integer(string='No', default=1)
     customer_id = fields.Many2one('fabric.customer', string='Customer')
     customer_name = fields.Char(string='Customer Name')
-    note = fields.Char(string='Name / Note', required=True)
+    note = fields.Char(string='Name / Note')
     money = fields.Float(string='Money', required=True)
     is_khata = fields.Boolean(string='Khata Sync (Jama)', default=False)
     khata_transaction_id = fields.Many2one('fabric.khata.transaction', string='Khata Entry', copy=False, ondelete='cascade')
@@ -175,12 +175,14 @@ class FabricDailyCashinLine(models.Model):
     def _sync_khata(self):
         for line in self:
             if line.is_khata and line.customer_id and line.money > 0:
+                clean_note = (line.note or '').replace('(Draft)', '').replace('Draft', '').strip()
+                p_text = f"Cash In: {clean_note}" if clean_note else "Cash In"
                 vals = {
                     'customer_id': line.customer_id.id,
                     'date': line.sheet_id.date or fields.Date.context_today(self),
                     'entry_type': 'jama',
                     'amount': line.money,
-                    'particulars': f"Cash In: {line.note}",
+                    'particulars': p_text,
                     'payment_method': 'cash',
                     'company_id': line.company_id.id,
                 }
@@ -220,7 +222,7 @@ class FabricDailyCashoutLine(models.Model):
     sequence = fields.Integer(string='No', default=1)
     customer_id = fields.Many2one('fabric.customer', string='Customer')
     customer_name = fields.Char(string='Customer Name')
-    note = fields.Char(string='Name / Note', required=True)
+    note = fields.Char(string='Name / Note')
     money = fields.Float(string='Money', required=True)
     is_khata = fields.Boolean(string='Khata Sync (Udhaar)', default=False)
     khata_transaction_id = fields.Many2one('fabric.khata.transaction', string='Khata Entry', copy=False, ondelete='cascade')
@@ -228,12 +230,14 @@ class FabricDailyCashoutLine(models.Model):
     def _sync_khata(self):
         for line in self:
             if line.is_khata and line.customer_id and line.money > 0:
+                clean_note = (line.note or '').replace('(Draft)', '').replace('Draft', '').strip()
+                p_text = f"Cash Out: {clean_note}" if clean_note else "Cash Out"
                 vals = {
                     'customer_id': line.customer_id.id,
                     'date': line.sheet_id.date or fields.Date.context_today(self),
                     'entry_type': 'udhaar',
                     'amount': line.money,
-                    'particulars': f"Cash Out: {line.note}",
+                    'particulars': p_text,
                     'payment_method': 'cash',
                     'company_id': line.company_id.id,
                 }

@@ -1,3 +1,4 @@
+import re
 from odoo import models, fields, api, _
 
 class FabricCustomer(models.Model):
@@ -121,28 +122,81 @@ class FabricCustomer(models.Model):
             formatted = f"{float(val or 0.0):,.2f}"
             return formatted[:-3] if formatted.endswith('.00') else formatted
 
-        msg = f"*Khata Summary for {self.name}*\n"
-        msg += f"*Current Net Balance:* {fmt_amt(self.current_net_balance)}\n\n"
-        
+        def format_tx_line(tx):
+            t_date = tx.date.strftime('%d-%b-%Y') if tx.date else ''
+            amt_str = fmt_amt(tx.amount)
+            raw_p = (tx.particulars or '').replace('(Draft)', '').replace('(draft)', '').strip()
+
+            if tx.entry_type == 'jama':
+                clean = raw_p.replace('Cash In:', '').replace('Cash In', '').strip()
+                if not clean or clean.lower() in ('payment received', 'draft', 'none'):
+                    label = "Receive"
+                else:
+                    label = f"Receive - {clean}"
+                return f"{t_date} | {label} | +{amt_str}"
+            else:
+                if 'Unpaid Sale:' in raw_p or 'Item:' in raw_p:
+                    parts = [p.strip() for p in raw_p.split('|')]
+                    item, rolls, measure, rate, note = '', '', '', '', ''
+                    for p in parts:
+                        if p.startswith('Item:'):
+                            item = p.replace('Item:', '').strip()
+                        elif p.startswith('Qty:'):
+                            qty_str = p.replace('Qty:', '').strip()
+                            m = re.search(r'(\d+)\s*Rolls?\s*/\s*([\d.]+\s*\w+)', qty_str, re.IGNORECASE)
+                            if m:
+                                rolls = m.group(1).strip()
+                                measure = m.group(2).strip()
+                            else:
+                                measure = qty_str
+                        elif p.startswith('Rate:'):
+                            rate = p.replace('Rate:', '').strip()
+                        elif p.startswith('Note:'):
+                            note = p.replace('Note:', '').strip()
+                    
+                    measure = re.sub(r'Meters\b', 'Meter', measure, flags=re.IGNORECASE)
+                    measure = re.sub(r'Yards\b', 'Yard', measure, flags=re.IGNORECASE)
+
+                    line_parts = []
+                    if rolls and item:
+                        line_parts.append(f"{rolls} {item}")
+                    elif item:
+                        line_parts.append(item)
+
+                    if measure:
+                        line_parts.append(measure)
+                    if rate:
+                        line_parts.append(rate)
+                    if note and note.lower() not in (item.lower(), f"{rolls} roll {item.lower()}"):
+                        line_parts.append(note)
+
+                    details = " | ".join(line_parts) if line_parts else (raw_p or "Sale")
+                    return f"{t_date} | {details} | -{amt_str}"
+                else:
+                    clean = raw_p.replace('Cash Out:', '').replace('Cash Out', '').strip()
+                    if not clean or clean.lower() in ('payment given', 'draft', 'none'):
+                        label = "Udhaar"
+                    else:
+                        label = clean
+                    return f"{t_date} | {label} | -{amt_str}"
+
+        msg = f"Customer - {self.name}\n\n"
+        msg += "Transaction History:\n"
+
         if txs:
             if len(txs) > 50:
                 txs = txs[-50:]
-                msg += f"*Recent Transactions (Last {len(txs)}):*\n"
-            else:
-                msg += "*Transaction History:*\n"
-
             for i, tx in enumerate(txs):
-                t_date = tx.date.strftime('%d-%b-%Y') if tx.date else ''
-                t_type = 'Cash Out (Udhaar)' if tx.entry_type == 'udhaar' else 'Cash In (Jama)'
-                particulars = tx.particulars or ''
-                in_out_amt = f"In: {fmt_amt(tx.cash_in)}" if tx.entry_type == 'jama' else f"Out: {fmt_amt(tx.cash_out)}"
-                msg += f"{i+1}. {t_date} | {t_type} | {in_out_amt} | {particulars}\n"
+                msg += f"{i+1}. {format_tx_line(tx)}\n"
         else:
             msg += "No transactions found.\n"
-            
+
+        net_val = fmt_amt(self.current_net_balance)
+        msg += f"\nNet Balance : {net_val}\n"
+
         import urllib.parse
         encoded_msg = urllib.parse.quote(msg.strip())
-        
+
         phone = self.phone or ''
         phone = phone.replace('+', '').replace(' ', '').replace('-', '')
         url = f"https://wa.me/{phone}?text={encoded_msg}" if (phone and phone != 'N/A') else f"https://wa.me/?text={encoded_msg}"
