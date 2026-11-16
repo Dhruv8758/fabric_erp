@@ -24,6 +24,7 @@
             'fabric_erp/static/src/xml/fabric_dashboard.xml',
             'fabric_erp/static/src/js/daily_sale_sheet.js',
             'fabric_erp/static/src/xml/daily_sale_sheet.xml',
+            'fabric_erp/static/src/js/fabric_customer_delete.js',
         ],
     },
     'installable': True,
