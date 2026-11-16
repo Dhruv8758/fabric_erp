@@ -130,7 +130,7 @@
                                 <field name="payment_method"/>
                                 <field name="cash_in" string="Cash In (Jama)" widget="fabric_amount" sum="Total Cash In" decoration-success="cash_in &gt; 0" decoration-muted="cash_in == 0"/>
                                 <field name="cash_out" string="Cash Out (Udhaar)" widget="fabric_amount" sum="Total Cash Out" decoration-danger="cash_out &gt; 0" decoration-muted="cash_out == 0"/>
-                                <field name="signed_amount" string="Udhar / Net Balance" sum="Total Udhar Balance" widget="fabric_amount" decoration-danger="signed_amount &lt; 0" decoration-success="signed_amount &gt; 0"/>
+                                <field name="running_balance" string="Udhar / Net Balance" sum="Total Udhar Balance" widget="fabric_amount" decoration-danger="running_balance &lt; 0" decoration-success="running_balance &gt; 0"/>
                                 <button name="action_open_transaction" type="object" icon="fa-external-link" string="Open" title="Open Transaction Details"/>
                                 <button name="action_delete_transaction" type="object" icon="fa-trash text-danger" title="Delete Entry" confirm="Are you sure you want to delete this transaction entry? This will update the customer balance."/>
                             </list>
@@ -219,7 +219,7 @@
                 <field name="payment_method"/>
                 <field name="cash_in" string="Cash In (Jama)" widget="fabric_amount" sum="Total Cash In" decoration-success="cash_in &gt; 0" decoration-muted="cash_in == 0"/>
                 <field name="cash_out" string="Cash Out (Udhaar)" widget="fabric_amount" sum="Total Cash Out" decoration-danger="cash_out &gt; 0" decoration-muted="cash_out == 0"/>
-                <field name="signed_amount" string="Udhar / Net Balance" sum="Total Udhar Balance" widget="fabric_amount" decoration-danger="signed_amount &lt; 0" decoration-success="signed_amount &gt; 0"/>
+                <field name="running_balance" string="Udhar / Net Balance" sum="Total Udhar Balance" widget="fabric_amount" decoration-danger="running_balance &lt; 0" decoration-success="running_balance &gt; 0"/>
                 <button name="action_delete_transaction" type="object" icon="fa-trash text-danger" title="Delete Entry" confirm="Are you sure you want to delete this transaction entry? This will update the customer balance."/>
             </list>
         </field>

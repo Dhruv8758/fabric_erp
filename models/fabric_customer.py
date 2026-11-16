@@ -58,12 +58,38 @@ class FabricCustomer(models.Model):
             cust.current_net_balance = jama_total - udhaar_total
             cust.status = 'udhaar_due' if cust.current_net_balance < -0.01 else 'clear'
             
+            # Synchronize running balance on each transaction in chronological order
+            txs = cust.transaction_ids.sorted(key=lambda t: (t.date or fields.Date.today(), t.id or 0))
+            bal = 0.0
+            for tx in txs:
+                if tx.entry_type == 'jama':
+                    bal += (tx.amount or 0.0)
+                elif tx.entry_type == 'udhaar':
+                    bal -= (tx.amount or 0.0)
+                if tx.running_balance != bal:
+                    tx.running_balance = bal
+
             dates = [t.date for t in cust.transaction_ids if t.date]
             if dates:
                 m_date = max(dates)
                 cust.last_activity_date = m_date.date() if hasattr(m_date, 'date') else m_date
             else:
                 cust.last_activity_date = fields.Date.today()
+
+    def _recompute_running_balances(self):
+        for cust in self:
+            txs = self.env['fabric.khata.transaction'].search(
+                [('customer_id', '=', cust.id)],
+                order='date asc, id asc'
+            )
+            bal = 0.0
+            for tx in txs:
+                if tx.entry_type == 'jama':
+                    bal += (tx.amount or 0.0)
+                elif tx.entry_type == 'udhaar':
+                    bal -= (tx.amount or 0.0)
+                if tx.running_balance != bal:
+                    tx.sudo().write({'running_balance': bal})
 
     def action_view_ledger(self):
         self.ensure_one()

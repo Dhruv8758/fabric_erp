@@ -27,6 +27,7 @@ class FabricKhataTransaction(models.Model):
     cash_out = fields.Float(string='Cash Out (Udhaar)', compute='_compute_display_format', store=True)
     display_date = fields.Char(string='Date', compute='_compute_display_format', store=True)
     signed_amount = fields.Float(string='Net Amount', compute='_compute_display_format', store=True)
+    running_balance = fields.Float(string='Udhar / Net Balance', compute='_compute_running_balance', store=True)
 
     @api.depends('date', 'amount', 'entry_type')
     def _compute_display_format(self):
@@ -49,6 +50,34 @@ class FabricKhataTransaction(models.Model):
                 tx.cash_out = 0.0
                 tx.signed_amount = 0.0
 
+    @api.depends('customer_id.transaction_ids.date', 'customer_id.transaction_ids.amount', 'customer_id.transaction_ids.entry_type')
+    def _compute_running_balance(self):
+        customers = self.mapped('customer_id')
+        for cust in customers:
+            txs = cust.transaction_ids.sorted(key=lambda t: (t.date or fields.Date.today(), t.id or 0))
+            bal = 0.0
+            for tx in txs:
+                if tx.entry_type == 'jama':
+                    bal += (tx.amount or 0.0)
+                elif tx.entry_type == 'udhaar':
+                    bal -= (tx.amount or 0.0)
+                tx.running_balance = bal
+        for tx in self:
+            if not tx.customer_id:
+                tx.running_balance = (tx.amount or 0.0) if tx.entry_type == 'jama' else -(tx.amount or 0.0)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        records.mapped('customer_id')._recompute_running_balances()
+        return records
+
+    def write(self, vals):
+        res = super().write(vals)
+        if any(k in vals for k in ['amount', 'entry_type', 'date', 'customer_id']):
+            self.mapped('customer_id')._recompute_running_balances()
+        return res
+
     def unlink(self):
         customers = self.mapped('customer_id')
         cashin_lines = self.env['fabric.daily.cashin.line'].search([('khata_transaction_id', 'in', self.ids)])
@@ -59,6 +88,7 @@ class FabricKhataTransaction(models.Model):
             cashout_lines.write({'is_khata': False, 'khata_transaction_id': False})
         res = super().unlink()
         if customers:
+            customers._recompute_running_balances()
             customers._compute_khata_totals()
         return res
 
