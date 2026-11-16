@@ -17,6 +17,9 @@ class FabricTimeLimitMixin(models.AbstractModel):
 
     def _check_24h_restriction(self, action_name='modify'):
         """Check if record is older than 24 hours (86400s). Regular users are restricted."""
+        if self.env.context.get('bypass_24h_restriction'):
+            return
+
         user = self._get_effective_user()
         # Superusers, Admins and Managers are allowed to edit/delete anytime
         if user._is_superuser() or user.has_group('fabric_erp.group_fabric_manager') or user.has_group('base.group_system'):

@@ -76,6 +76,63 @@ class FabricCustomer(models.Model):
             'target': 'current',
         }
 
+    def unlink(self):
+        cust_ids = self.ids
+        cust_names = [c.name for c in self if c.name]
+        
+        # 1. Search and delete all Daily Sale lines linked to these customers
+        domain_sale = ['|', ('customer_id', 'in', cust_ids), ('customer_name', 'in', cust_names)] if cust_names else [('customer_id', 'in', cust_ids)]
+        sale_lines = self.env['fabric.daily.sale.line'].sudo().search(domain_sale)
+        
+        # 2. Search and delete all Daily Cash In lines linked to these customers
+        domain_cashin = ['|', ('customer_id', 'in', cust_ids), ('customer_name', 'in', cust_names)] if cust_names else [('customer_id', 'in', cust_ids)]
+        cashin_lines = self.env['fabric.daily.cashin.line'].sudo().search(domain_cashin)
+        
+        # 3. Search and delete all Daily Cash Out lines linked to these customers
+        domain_cashout = ['|', ('customer_id', 'in', cust_ids), ('customer_name', 'in', cust_names)] if cust_names else [('customer_id', 'in', cust_ids)]
+        cashout_lines = self.env['fabric.daily.cashout.line'].sudo().search(domain_cashout)
+        
+        # Collect affected daily sheets to recompute totals
+        affected_sheets = (sale_lines.mapped('sheet_id') | cashin_lines.mapped('sheet_id') | cashout_lines.mapped('sheet_id'))
+        
+        if sale_lines:
+            sale_lines.with_context(bypass_24h_restriction=True).unlink()
+        if cashin_lines:
+            cashin_lines.with_context(bypass_24h_restriction=True).unlink()
+        if cashout_lines:
+            cashout_lines.with_context(bypass_24h_restriction=True).unlink()
+            
+        if affected_sheets:
+            affected_sheets._compute_sheet_totals()
+            
+        # 4. Search and delete any remaining Khata transactions linked to these customers
+        khata_txs = self.env['fabric.khata.transaction'].sudo().search([('customer_id', 'in', cust_ids)])
+        if khata_txs:
+            khata_txs.with_context(bypass_24h_restriction=True).unlink()
+            
+        # 5. Search and delete visit notes linked to these customers
+        visit_notes = self.env['fabric.visit.note'].sudo().search([('customer_id', 'in', cust_ids)])
+        if visit_notes:
+            visit_notes.with_context(bypass_24h_restriction=True).unlink()
+            
+        return super().unlink()
+
+    def action_delete_customer(self):
+        self.ensure_one()
+        self.unlink()
+        act_ref = self.env.ref('fabric_erp.action_fabric_customer', raise_if_not_found=False)
+        if act_ref:
+            action = act_ref.read()[0]
+            action['target'] = 'current'
+            return action
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Customer Khata Accounts Directory',
+            'res_model': 'fabric.customer',
+            'view_mode': 'list,form',
+            'target': 'current',
+        }
+
     def action_give_udhaar_dialog(self):
         self.ensure_one()
         return {
