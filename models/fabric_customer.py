@@ -58,8 +58,8 @@ class FabricCustomer(models.Model):
             cust.current_net_balance = jama_total - udhaar_total
             cust.status = 'udhaar_due' if cust.current_net_balance < -0.01 else 'clear'
             
-            # Synchronize running balance on each transaction in chronological order
-            txs = cust.transaction_ids.sorted(key=lambda t: (t.date or fields.Date.today(), t.id or 0))
+            # Synchronize running balance on each transaction counting from bottom to top
+            txs = cust.transaction_ids.sorted(key=lambda t: (t.date or fields.Date.today(), t.id or 0), reverse=True)
             bal = 0.0
             for tx in txs:
                 if tx.entry_type == 'jama':
@@ -78,9 +78,10 @@ class FabricCustomer(models.Model):
 
     def _recompute_running_balances(self):
         for cust in self:
+            # Recompute from bottom to top (date desc, id desc)
             txs = self.env['fabric.khata.transaction'].search(
                 [('customer_id', '=', cust.id)],
-                order='date asc, id asc'
+                order='date desc, id desc'
             )
             bal = 0.0
             for tx in txs:

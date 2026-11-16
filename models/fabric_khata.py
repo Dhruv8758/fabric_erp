@@ -54,7 +54,8 @@ class FabricKhataTransaction(models.Model):
     def _compute_running_balance(self):
         customers = self.mapped('customer_id')
         for cust in customers:
-            txs = cust.transaction_ids.sorted(key=lambda t: (t.date or fields.Date.today(), t.id or 0))
+            # Count from bottom to top (newest date/id up to oldest date/id)
+            txs = cust.transaction_ids.sorted(key=lambda t: (t.date or fields.Date.today(), t.id or 0), reverse=True)
             bal = 0.0
             for tx in txs:
                 if tx.entry_type == 'jama':

@@ -33,16 +33,14 @@ patch(ListRenderer.prototype, {
         if (aggregates && aggregates["running_balance"]) {
             const list = this.props.list;
             if (list && list.resModel === "fabric.khata.transaction" && list.records && list.records.length > 0) {
-                let latestRec = list.records[0];
+                let totalIn = 0;
+                let totalOut = 0;
                 for (const rec of list.records) {
-                    const rDate = rec.data.date ? new Date(rec.data.date).getTime() : 0;
-                    const lDate = latestRec.data.date ? new Date(latestRec.data.date).getTime() : 0;
-                    if (rDate > lDate || (rDate === lDate && (rec.data.id || 0) > (latestRec.data.id || 0))) {
-                        latestRec = rec;
-                    }
+                    totalIn += (rec.data.cash_in || 0);
+                    totalOut += (rec.data.cash_out || 0);
                 }
-                const finalBal = latestRec.data.running_balance || 0;
-                aggregates["running_balance"].value = formatAmount(finalBal);
+                const netBal = totalIn - totalOut;
+                aggregates["running_balance"].value = formatAmount(netBal);
             }
         }
         return aggregates;
