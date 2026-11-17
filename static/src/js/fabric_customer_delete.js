@@ -13,6 +13,63 @@ patch(FormController.prototype, {
         super.setup(...arguments);
         if (this.props.resModel === "fabric.customer") {
             let scrollTimer = null;
+
+            const initChatterCollapse = (root) => {
+                if (!root) return;
+                const chatter = root.querySelector(".o-mail-Form-chatter") || root.querySelector(".o-mail-ChatterContainer");
+                if (!chatter) return;
+
+                let toggleBar = root.querySelector(".fabric-chatter-accordion");
+                if (!toggleBar) {
+                    toggleBar = document.createElement("div");
+                    toggleBar.className = "fabric-customer-details-accordion fabric-chatter-accordion";
+                    toggleBar.innerHTML = `
+                        <div class="fabric-details-toggle">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fa fa-comments-o toggle-icon"></i>
+                                <span class="toggle-title">Activity Notes, Logs &amp; Message History (Chatter)</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="btn-toggle-action btn-view-pill chatter-show-pill">View Chatter &#9660;</span>
+                                <span class="btn-toggle-action btn-hide-pill chatter-hide-pill" style="display: none !important;">Hide Chatter &#9650;</span>
+                                <i class="fa fa-chevron-down accordion-arrow"></i>
+                            </div>
+                        </div>
+                    `;
+                    chatter.parentNode.insertBefore(toggleBar, chatter);
+
+                    // Natively hide chatter by default
+                    chatter.style.display = "none";
+
+                    toggleBar.querySelector(".fabric-details-toggle").addEventListener("click", () => {
+                        const isHidden = chatter.style.display === "none";
+                        if (isHidden) {
+                            chatter.style.display = "";
+                            toggleBar.classList.add("is-open");
+                            toggleBar.querySelector(".chatter-show-pill").style.setProperty("display", "none", "important");
+                            toggleBar.querySelector(".chatter-hide-pill").style.setProperty("display", "inline-flex", "important");
+                            toggleBar.querySelector(".accordion-arrow").style.transform = "rotate(180deg)";
+                        } else {
+                            chatter.style.display = "none";
+                            toggleBar.classList.remove("is-open");
+                            toggleBar.querySelector(".chatter-show-pill").style.setProperty("display", "inline-flex", "important");
+                            toggleBar.querySelector(".chatter-hide-pill").style.setProperty("display", "none", "important");
+                            toggleBar.querySelector(".accordion-arrow").style.transform = "";
+                        }
+                    });
+                } else {
+                    // Reset to collapsed when switching records
+                    chatter.style.display = "none";
+                    toggleBar.classList.remove("is-open");
+                    const showPill = toggleBar.querySelector(".chatter-show-pill");
+                    const hidePill = toggleBar.querySelector(".chatter-hide-pill");
+                    const arrow = toggleBar.querySelector(".accordion-arrow");
+                    if (showPill) showPill.style.setProperty("display", "inline-flex", "important");
+                    if (hidePill) hidePill.style.setProperty("display", "none", "important");
+                    if (arrow) arrow.style.transform = "";
+                }
+            };
+
             const scrollToTotal = () => {
                 if (scrollTimer) {
                     clearInterval(scrollTimer);
@@ -30,6 +87,10 @@ patch(FormController.prototype, {
                         }
                         return;
                     }
+
+                    // Initialize chatter collapse
+                    initChatterCollapse(root);
+
                     const tfoot = root.querySelector("[name='transaction_ids'] tfoot") ||
                                   root.querySelector("[name='transaction_ids'] .o_list_footer");
                     const target = (tfoot && (tfoot.querySelector("tr") || tfoot)) ||

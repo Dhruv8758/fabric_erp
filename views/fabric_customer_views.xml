@@ -68,14 +68,14 @@
                     <details class="fabric-customer-details-accordion mb-3">
                         <summary class="fabric-details-toggle">
                             <div class="d-flex align-items-center gap-2">
-                                <i class="fa fa-id-card-o text-primary"></i>
-                                <span class="details-show-text fw-semibold text-secondary">View Customer Details &amp; Financial Balance Summary</span>
-                                <span class="details-hide-text fw-semibold text-secondary">Hide Customer Details &amp; Financial Balance Summary</span>
+                                <i class="fa fa-id-card-o toggle-icon"></i>
+                                <span class="toggle-title details-show-text">Customer Details &amp; Financial Balance Summary</span>
+                                <span class="toggle-title details-hide-text">Customer Details &amp; Financial Balance Summary</span>
                             </div>
                             <div class="d-flex align-items-center gap-2">
-                                <span class="badge bg-light text-secondary border details-show-text">Click to View</span>
-                                <span class="badge bg-secondary-subtle text-secondary border details-hide-text">Click to Hide</span>
-                                <i class="fa fa-chevron-down text-muted accordion-arrow"></i>
+                                <span class="btn-toggle-action btn-view-pill details-show-text">View Details &#9660;</span>
+                                <span class="btn-toggle-action btn-hide-pill details-hide-text">Hide Details &#9650;</span>
+                                <i class="fa fa-chevron-down accordion-arrow"></i>
                             </div>
                         </summary>
                         <div class="details-content">

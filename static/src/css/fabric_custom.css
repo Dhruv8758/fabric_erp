@@ -101,74 +101,142 @@ input[type="number"] {
     -moz-appearance: textfield !important;
 }
 
-/* Customer Khata - Collapsible Details Accordion */
+/* Customer Khata - High-Contrast Collapsible Accordions (Customer Details & Chatter) */
 .fabric-customer-details-accordion {
-    border: 1px solid #dee2e6;
-    border-radius: 6px;
-    background-color: #f8f9fa;
-    margin-bottom: 1.25rem;
-    transition: all 0.2s ease-in-out;
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    background-color: #f8fafc !important;
+    margin-bottom: 1.25rem !important;
+    transition: all 0.2s ease-in-out !important;
+    overflow: hidden !important;
 }
 
-.fabric-customer-details-accordion[open] {
-    background-color: #ffffff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    border-color: #cbd5e1;
+.fabric-customer-details-accordion[open],
+.fabric-customer-details-accordion.is-open {
+    background-color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+    border-color: #3b82f6 !important;
 }
 
-.fabric-customer-details-accordion summary.fabric-details-toggle {
-    list-style: none;
-    cursor: pointer;
-    padding: 9px 14px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 0.875rem;
-    color: #495057;
-    user-select: none;
-    border-radius: 5px;
-    transition: background-color 0.15s ease, color 0.15s ease;
+.fabric-customer-details-accordion summary.fabric-details-toggle,
+.fabric-customer-details-accordion .fabric-details-toggle {
+    list-style: none !important;
+    cursor: pointer !important;
+    padding: 10px 16px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+    user-select: none !important;
+    border-bottom: 1px solid transparent !important;
+    transition: background-color 0.15s ease, color 0.15s ease !important;
 }
 
 .fabric-customer-details-accordion summary.fabric-details-toggle::-webkit-details-marker {
-    display: none;
+    display: none !important;
 }
 
-.fabric-customer-details-accordion summary.fabric-details-toggle:hover {
-    background-color: #e9ecef;
-    color: #212529;
+.fabric-customer-details-accordion summary.fabric-details-toggle:hover,
+.fabric-customer-details-accordion .fabric-details-toggle:hover {
+    background-color: #e2e8f0 !important;
+    color: #000000 !important;
+}
+
+.fabric-customer-details-accordion[open] summary.fabric-details-toggle,
+.fabric-customer-details-accordion.is-open .fabric-details-toggle {
+    background-color: #eff6ff !important;
+    border-bottom: 1.5px solid #bfdbfe !important;
+}
+
+/* Bold Title & Icon */
+.fabric-details-toggle .toggle-title {
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+    letter-spacing: -0.01em !important;
+}
+
+.fabric-customer-details-accordion[open] .fabric-details-toggle .toggle-title,
+.fabric-customer-details-accordion.is-open .fabric-details-toggle .toggle-title {
+    color: #1d4ed8 !important;
+}
+
+.fabric-details-toggle .toggle-icon {
+    font-size: 1.15rem !important;
+    color: #2563eb !important;
+}
+
+/* Vibrant Action Buttons */
+.fabric-details-toggle .btn-toggle-action {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    padding: 5px 14px !important;
+    border-radius: 20px !important;
+    transition: all 0.15s ease !important;
+}
+
+.fabric-details-toggle .btn-view-pill {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+    border: 1px solid #1d4ed8 !important;
+    box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3) !important;
+}
+
+.fabric-details-toggle .btn-view-pill:hover {
+    background-color: #1d4ed8 !important;
+}
+
+.fabric-details-toggle .btn-hide-pill {
+    background-color: #475569 !important;
+    color: #ffffff !important;
+    border: 1px solid #334155 !important;
+}
+
+.fabric-details-toggle .btn-hide-pill:hover {
+    background-color: #334155 !important;
 }
 
 .fabric-customer-details-accordion .details-show-text {
-    display: inline-flex;
-    align-items: center;
+    display: inline-flex !important;
+    align-items: center !important;
 }
 
 .fabric-customer-details-accordion .details-hide-text {
-    display: none;
+    display: none !important;
 }
 
 .fabric-customer-details-accordion[open] .details-show-text {
-    display: none;
+    display: none !important;
 }
 
 .fabric-customer-details-accordion[open] .details-hide-text {
-    display: inline-flex;
-    align-items: center;
+    display: inline-flex !important;
+    align-items: center !important;
 }
 
 .fabric-customer-details-accordion .accordion-arrow {
-    transition: transform 0.2s ease;
+    font-size: 0.85rem !important;
+    color: #475569 !important;
+    transition: transform 0.2s ease !important;
 }
 
-.fabric-customer-details-accordion[open] .accordion-arrow {
-    transform: rotate(180deg);
+.fabric-customer-details-accordion[open] .accordion-arrow,
+.fabric-customer-details-accordion.is-open .accordion-arrow {
+    transform: rotate(180deg) !important;
+    color: #1d4ed8 !important;
 }
 
 .fabric-customer-details-accordion .details-content {
-    padding: 12px 14px 14px 14px;
-    border-top: 1px solid #e9ecef;
-    background-color: #ffffff;
-    border-bottom-left-radius: 6px;
-    border-bottom-right-radius: 6px;
+    padding: 16px !important;
+    background-color: #ffffff !important;
+}
+
+/* Chatter Accordion Specific */
+.fabric-chatter-accordion {
+    max-width: 100% !important;
+    margin: 1.5rem 0 !important;
 }
