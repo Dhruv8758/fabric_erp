@@ -30,8 +30,8 @@ patch(FormController.prototype, {
                                 <span class="toggle-title">Activity Notes, Logs &amp; Message History (Chatter)</span>
                             </div>
                             <div class="d-flex align-items-center gap-2">
-                                <span class="btn-toggle-action btn-view-pill chatter-show-pill">View Chatter &#9660;</span>
-                                <span class="btn-toggle-action btn-hide-pill chatter-hide-pill" style="display: none !important;">Hide Chatter &#9650;</span>
+                                <span class="toggle-action-pill pill-view chatter-show-pill">View Chatter &#9660;</span>
+                                <span class="toggle-action-pill pill-hide chatter-hide-pill" style="display: none !important;">Hide Chatter &#9650;</span>
                                 <i class="fa fa-chevron-down accordion-arrow"></i>
                             </div>
                         </div>

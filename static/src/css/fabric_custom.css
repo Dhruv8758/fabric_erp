@@ -168,7 +168,7 @@ input[type="number"] {
 }
 
 /* Vibrant Action Buttons */
-.fabric-details-toggle .btn-toggle-action {
+.fabric-details-toggle .toggle-action-pill {
     display: inline-flex !important;
     align-items: center !important;
     gap: 6px !important;
@@ -179,24 +179,24 @@ input[type="number"] {
     transition: all 0.15s ease !important;
 }
 
-.fabric-details-toggle .btn-view-pill {
+.fabric-details-toggle .pill-view {
     background-color: #2563eb !important;
     color: #ffffff !important;
     border: 1px solid #1d4ed8 !important;
     box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3) !important;
 }
 
-.fabric-details-toggle .btn-view-pill:hover {
+.fabric-details-toggle .pill-view:hover {
     background-color: #1d4ed8 !important;
 }
 
-.fabric-details-toggle .btn-hide-pill {
+.fabric-details-toggle .pill-hide {
     background-color: #475569 !important;
     color: #ffffff !important;
     border: 1px solid #334155 !important;
 }
 
-.fabric-details-toggle .btn-hide-pill:hover {
+.fabric-details-toggle .pill-hide:hover {
     background-color: #334155 !important;
 }
 
