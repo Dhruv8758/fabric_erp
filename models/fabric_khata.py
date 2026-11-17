@@ -103,13 +103,115 @@ class FabricKhataTransaction(models.Model):
 
     def action_open_transaction(self):
         self.ensure_one()
+        target_date = self.date or fields.Date.context_today(self)
+        target_date_str = target_date.strftime('%Y-%m-%d')
+        customer_name = self.customer_id.name if self.customer_id else ''
+        target_section = 'sale-section'
+        target_line_id = False
+        target_model = False
+
+        # 1. Check if directly linked to a Cash In line
+        cashin_line = self.env['fabric.daily.cashin.line'].search([
+            ('khata_transaction_id', '=', self.id)
+        ], limit=1)
+        if cashin_line:
+            target_section = 'cashin-section'
+            target_line_id = cashin_line.id
+            target_model = 'fabric.daily.cashin.line'
+            if cashin_line.sheet_id and cashin_line.sheet_id.date:
+                target_date_str = cashin_line.sheet_id.date.strftime('%Y-%m-%d')
+        else:
+            # 2. Check if directly linked to a Cash Out line
+            cashout_line = self.env['fabric.daily.cashout.line'].search([
+                ('khata_transaction_id', '=', self.id)
+            ], limit=1)
+            if cashout_line:
+                if cashout_line.sheet_id and cashout_line.sheet_id.date:
+                    target_date_str = cashout_line.sheet_id.date.strftime('%Y-%m-%d')
+
+                # Check if this cashout line was generated from an Unpaid Sale
+                note = cashout_line.note or ''
+                if 'Unpaid Sale' in note or 'Item:' in note:
+                    target_section = 'sale-section'
+                    sheet = cashout_line.sheet_id
+                    if sheet:
+                        sale_lines = sheet.sale_line_ids.filtered(lambda sl: sl.is_unpaid)
+                        # Match by customer and amount
+                        match = sale_lines.filtered(
+                            lambda sl: (sl.customer_id == self.customer_id or sl.customer_name == customer_name)
+                            and abs(sl.total_price - self.amount) < 0.01
+                        )
+                        if not match:
+                            match = sale_lines.filtered(lambda sl: abs(sl.total_price - self.amount) < 0.01)
+                        if match:
+                            target_line_id = match[0].id
+                            target_model = 'fabric.daily.sale.line'
+                        else:
+                            target_line_id = cashout_line.id
+                            target_model = 'fabric.daily.cashout.line'
+                            target_section = 'cashout-section'
+                else:
+                    target_section = 'cashout-section'
+                    target_line_id = cashout_line.id
+                    target_model = 'fabric.daily.cashout.line'
+            else:
+                # 3. If no direct link found, check matching sale or cashin line by customer and date
+                if self.entry_type == 'jama':
+                    target_section = 'cashin-section'
+                    matching_sheet = self.env['fabric.daily.sheet'].search([('date', '=', target_date)], limit=1)
+                    if matching_sheet:
+                        c_line = matching_sheet.cashin_line_ids.filtered(
+                            lambda cl: (cl.customer_id == self.customer_id or cl.customer_name == customer_name)
+                            and abs(cl.money - self.amount) < 0.01
+                        )
+                        if c_line:
+                            target_line_id = c_line[0].id
+                            target_model = 'fabric.daily.cashin.line'
+                else:
+                    target_section = 'sale-section'
+                    matching_sheet = self.env['fabric.daily.sheet'].search([('date', '=', target_date)], limit=1)
+                    if matching_sheet:
+                        s_line = matching_sheet.sale_line_ids.filtered(
+                            lambda sl: (sl.customer_id == self.customer_id or sl.customer_name == customer_name)
+                            and abs(sl.total_price - self.amount) < 0.01
+                        )
+                        if s_line:
+                            target_line_id = s_line[0].id
+                            target_model = 'fabric.daily.sale.line'
+                        else:
+                            co_line = matching_sheet.cashout_line_ids.filtered(
+                                lambda cl: (cl.customer_id == self.customer_id or cl.customer_name == customer_name)
+                                and abs(cl.money - self.amount) < 0.01
+                            )
+                            if co_line:
+                                target_line_id = co_line[0].id
+                                target_model = 'fabric.daily.cashout.line'
+                                target_section = 'cashout-section'
+
         return {
-            'type': 'ir.actions.act_window',
-            'name': 'Khata Transaction',
-            'res_model': 'fabric.khata.transaction',
-            'res_id': self.id,
-            'view_mode': 'form',
-            'target': 'current',
+            'type': 'ir.actions.client',
+            'tag': 'fabric_erp.daily_sale_sheet',
+            'name': f"Daily Sales Sheet ({target_date_str})",
+            'params': {
+                'default_date': target_date_str,
+                'target_section': target_section,
+                'target_customer': customer_name,
+                'target_amount': self.amount,
+                'target_line_id': target_line_id,
+                'target_model': target_model,
+                'target_khata_id': self.id,
+                'target_particulars': self.particulars or '',
+            },
+            'context': {
+                'default_date': target_date_str,
+                'target_section': target_section,
+                'target_customer': customer_name,
+                'target_amount': self.amount,
+                'target_line_id': target_line_id,
+                'target_model': target_model,
+                'target_khata_id': self.id,
+                'target_particulars': self.particulars or '',
+            }
         }
 
 class FabricKhataTransactionWizard(models.TransientModel):

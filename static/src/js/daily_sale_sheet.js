@@ -17,8 +17,15 @@ export class DailySaleSheetComponent extends Component {
         
         const today = new Date().toISOString().split('T')[0];
         const savedWidth = localStorage.getItem('fabric_sheet_width_val') || '100%';
+        const actionContext = (this.props.action && this.props.action.context) || {};
+        const actionParams = (this.props.action && this.props.action.params) || {};
+        const passedDate = actionParams.default_date || actionContext.default_date || actionContext.date || window.fabric_target_date;
+        const initialDate = passedDate || globalLastSelectedDate || today;
+        if (passedDate) {
+            globalLastSelectedDate = passedDate;
+        }
         this.state = useState({
-            date: globalLastSelectedDate || today,
+            date: initialDate,
             lastBalance: '',
             saveStatus: 'saved', // 'saved' | 'saving' | 'unsaved'
             containerWidthVal: savedWidth, // '100%', '95%', '90%', '80%', '960px'
@@ -228,6 +235,84 @@ export class DailySaleSheetComponent extends Component {
             console.error("Failed to load sheet by date", e);
         }
         this.ensureEmptyLines();
+        this.highlightTargetLine();
+    }
+
+    highlightTargetLine() {
+        const actionContext = (this.props.action && this.props.action.context) || {};
+        const actionParams = (this.props.action && this.props.action.params) || {};
+        const targetLineId = actionParams.target_line_id || actionContext.target_line_id;
+        const targetModel = actionParams.target_model || actionContext.target_model;
+        const targetSection = actionParams.target_section || actionContext.target_section || window.fabric_target_section;
+        const targetCustomer = (actionParams.target_customer || actionContext.target_customer || '').trim().toLowerCase();
+        const targetAmount = parseFloat(actionParams.target_amount || actionContext.target_amount || 0);
+        const targetKhataId = actionParams.target_khata_id || actionContext.target_khata_id;
+
+        if (!targetSection && !targetLineId && !targetCustomer && targetAmount <= 0) {
+            return;
+        }
+
+        // Reset highlight flags
+        for (const l of this.state.saleLines) l._is_highlighted = false;
+        for (const l of this.state.cashinLines) l._is_highlighted = false;
+        for (const l of this.state.cashoutLines) l._is_highlighted = false;
+
+        const matchInList = (lines, isSale = false) => {
+            if (targetLineId) {
+                const byId = lines.find(l => l.id === targetLineId);
+                if (byId) return byId;
+            }
+            if (targetKhataId && !isSale) {
+                const byKhata = lines.find(l => l.khata_transaction_id === targetKhataId);
+                if (byKhata) return byKhata;
+            }
+            if (targetCustomer && targetAmount > 0) {
+                const byCustAmt = lines.find(l => {
+                    const cName = (l.customer_name || '').trim().toLowerCase();
+                    const amt = isSale ? parseFloat(l.total || l.total_price || 0) : parseFloat(l.money || 0);
+                    const noteStr = (l.note || '').toLowerCase();
+                    return (cName === targetCustomer || noteStr.includes(targetCustomer)) && Math.abs(amt - targetAmount) < 0.01;
+                });
+                if (byCustAmt) return byCustAmt;
+            }
+            if (targetAmount > 0) {
+                const byAmt = lines.find(l => {
+                    const amt = isSale ? parseFloat(l.total || l.total_price || 0) : parseFloat(l.money || 0);
+                    return Math.abs(amt - targetAmount) < 0.01;
+                });
+                if (byAmt) return byAmt;
+            }
+            return null;
+        };
+
+        let found = null;
+        if (targetSection === 'sale-section' || targetModel === 'fabric.daily.sale.line') {
+            found = matchInList(this.state.saleLines, true);
+            if (!found) found = matchInList(this.state.cashoutLines, false);
+        } else if (targetSection === 'cashin-section' || targetModel === 'fabric.daily.cashin.line') {
+            found = matchInList(this.state.cashinLines, false);
+        } else if (targetSection === 'cashout-section' || targetModel === 'fabric.daily.cashout.line') {
+            found = matchInList(this.state.cashoutLines, false);
+            if (!found) found = matchInList(this.state.saleLines, true);
+        }
+
+        if (found) {
+            found._is_highlighted = true;
+            setTimeout(() => {
+                const row = document.querySelector('.fabric-highlight-row');
+                if (row) {
+                    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else if (targetSection) {
+                    const sec = document.getElementById(targetSection);
+                    if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 300);
+        } else if (targetSection) {
+            setTimeout(() => {
+                const sec = document.getElementById(targetSection);
+                if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 300);
+        }
     }
 
 

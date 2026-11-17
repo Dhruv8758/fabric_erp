@@ -240,3 +240,31 @@ input[type="number"] {
     max-width: 100% !important;
     margin: 1.5rem 0 !important;
 }
+
+/* Highlighted Row (Navigated from Customer Khata) */
+@keyframes fabricRowHighlight {
+    0% {
+        background-color: #fef08a !important;
+        box-shadow: 0 0 16px rgba(234, 179, 8, 0.7) !important;
+        outline: 2.5px solid #eab308 !important;
+    }
+    50% {
+        background-color: #fef9c3 !important;
+        box-shadow: 0 0 10px rgba(234, 179, 8, 0.4) !important;
+        outline: 2.5px solid #eab308 !important;
+    }
+    100% {
+        background-color: #fffbeb !important;
+        box-shadow: none !important;
+        outline: 2px solid #facc15 !important;
+    }
+}
+
+.fabric-highlight-row {
+    animation: fabricRowHighlight 4.5s ease-out forwards !important;
+    position: relative !important;
+    z-index: 2 !important;
+}
+.fabric-highlight-row td {
+    background-color: inherit !important;
+}

@@ -422,7 +422,7 @@
                             </thead>
                             <tbody>
                                 <t t-foreach="state.saleLines" t-as="line" t-key="line._uid || line.id">
-                                    <tr t-att-style="line.create_uid and line.create_uid === state.current_uid ? 'background-color: #f0f8ff;' : ''">
+                                    <tr t-att-class="line._is_highlighted ? 'fabric-highlight-row' : ''" t-att-style="line.create_uid and line.create_uid === state.current_uid ? 'background-color: #f0f8ff;' : ''">
                                         <td>
                                             <t t-esc="line_index + 1"/>
                                             <t t-if="line.create_uid">
@@ -558,7 +558,7 @@
                             </thead>
                             <tbody>
                                 <t t-foreach="state.cashinLines" t-as="line" t-key="line._uid || line.id">
-                                    <tr t-att-style="line.create_uid and line.create_uid === state.current_uid ? 'background-color: #f0f8ff;' : ''">
+                                    <tr t-att-class="line._is_highlighted ? 'fabric-highlight-row' : ''" t-att-style="line.create_uid and line.create_uid === state.current_uid ? 'background-color: #f0f8ff;' : ''">
                                         <td>
                                             <t t-esc="line_index + 1"/>
                                             <t t-if="line.create_uid">
@@ -652,7 +652,7 @@
                             </thead>
                             <tbody>
                                 <t t-foreach="state.cashoutLines" t-as="line" t-key="line._uid || line.id">
-                                    <tr t-att-style="line.create_uid and line.create_uid === state.current_uid ? 'background-color: #f0f8ff;' : ''">
+                                    <tr t-att-class="line._is_highlighted ? 'fabric-highlight-row' : ''" t-att-style="line.create_uid and line.create_uid === state.current_uid ? 'background-color: #f0f8ff;' : ''">
                                         <td>
                                             <t t-esc="line_index + 1"/>
                                             <t t-if="line.create_uid">
