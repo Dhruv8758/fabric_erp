@@ -111,7 +111,7 @@
                                         </span>
                                     </div>
                                 </div>
-                                <span role="button" class="fabric-drawer-close-btn" title="Close Drawer">&times;</span>
+                                <span role="button" class="fabric-drawer-close-btn" title="Close Drawer">&#215;</span>
                             </div>
 
                             <div class="drawer-body-scroll p-3">
