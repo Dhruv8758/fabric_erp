@@ -11,7 +11,7 @@
         <field name="name">fabric.customer.tree</field>
         <field name="model">fabric.customer</field>
         <field name="arch" type="xml">
-            <list string="Customer Khata Accounts Directory" default_order="id asc">
+            <list string="Customer Khata Accounts Directory" default_order="id asc" limit="1000">
                 <field name="currency_id" column_invisible="1"/>
                 <field name="code"/>
                 <field name="name" string="Customer Name &amp; Contact"/>
@@ -179,7 +179,7 @@
                             <i class="fa fa-list-alt me-2 text-primary"></i>COMPLETE TRANSACTION LEDGER STATEMENT
                         </h4>
                         <field name="transaction_ids">
-                            <list string="Transactions" create="0" delete="0" default_order="date asc, id asc">
+                            <list string="Transactions" create="0" delete="0" default_order="date asc, id asc" limit="10000">
                                 <field name="currency_id" column_invisible="1"/>
                                 <field name="display_date"/>
                                 <field name="entry_type" widget="badge" decoration-success="entry_type == 'jama'" decoration-danger="entry_type == 'udhaar'"/>
@@ -267,7 +267,7 @@
         <field name="name">fabric.khata.transaction.tree</field>
         <field name="model">fabric.khata.transaction</field>
         <field name="arch" type="xml">
-            <list string="Khata Transactions" default_order="date desc, id desc" delete="0">
+            <list string="Khata Transactions" default_order="date desc, id desc" delete="0" limit="10000">
                 <field name="currency_id" column_invisible="1"/>
                 <field name="display_date"/>
                 <field name="customer_id"/>

@@ -433,3 +433,10 @@ input[type="number"] {
 .fabric-highlight-row td {
     background-color: inherit !important;
 }
+
+/* Ensure All Transactions Stay on One Page Without Pagination */
+.o_field_one2many[name="transaction_ids"] .o_cp_pager,
+.o_field_widget[name="transaction_ids"] .o_cp_pager,
+[name="transaction_ids"] .o_pager {
+    display: none !important;
+}

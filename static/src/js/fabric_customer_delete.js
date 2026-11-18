@@ -246,7 +246,20 @@ patch(FormController.prototype, {
                 }, 50);
             };
 
+            const ensureAllTransactionsLoaded = () => {
+                const list = this.model?.root?.data?.transaction_ids;
+                if (list) {
+                    if (list.limit < 10000) {
+                        list.limit = 10000;
+                    }
+                    if (list.count > list.records.length) {
+                        list.load({ limit: 10000, offset: 0 });
+                    }
+                }
+            };
+
             onMounted(() => {
+                ensureAllTransactionsLoaded();
                 scrollToTotal();
             });
 
@@ -254,6 +267,7 @@ patch(FormController.prototype, {
                 (resId) => {
                     closeAllDrawers();
                     if (resId) {
+                        ensureAllTransactionsLoaded();
                         scrollToTotal();
                     }
                 },
