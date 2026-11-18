@@ -66,9 +66,9 @@
                                 <div class="d-flex align-items-center gap-2 mb-1">
                                     <span class="badge bg-secondary-subtle text-secondary fw-bold px-2 py-1" style="font-size: 0.7rem; letter-spacing: 0.05em; text-transform: uppercase;">Customer Khata</span>
                                     <span class="text-muted small">•</span>
-                                    <span class="text-muted small"><i class="fa fa-id-badge text-primary me-1"></i><field name="code"/></span>
+                                    <span class="text-muted small"><i class="fa fa-id-badge text-primary me-1" title="Customer ID"></i><field name="code"/></span>
                                     <span class="text-muted small">•</span>
-                                    <span class="text-muted small"><i class="fa fa-phone text-success me-1"></i><field name="phone"/></span>
+                                    <span class="text-muted small"><i class="fa fa-phone text-success me-1" title="Phone"></i><field name="phone"/></span>
                                 </div>
                                 <h1 class="fw-bold text-dark m-0" style="font-size: 1.85rem; letter-spacing: -0.02em;">
                                     <field name="name" placeholder="Customer / Store Name"/>
@@ -83,13 +83,13 @@
                                 </div>
                                 <!-- SUMMARY TOGGLE BUTTON -->
                                 <span role="button" class="fabric-pill-btn-unique fabric-toggle-summary-btn">
-                                    <i class="fa fa-sliders text-primary"></i>
+                                    <i class="fa fa-sliders text-primary" title="Summary Toggle"></i>
                                     <span class="summary-btn-text">View Summary</span>
-                                    <i class="fa fa-chevron-down ms-1 summary-btn-arrow"></i>
+                                    <i class="fa fa-chevron-down ms-1 summary-btn-arrow" title="Expand"></i>
                                 </span>
                                 <!-- CHATTER SHORTCUT BUTTON -->
                                 <span role="button" class="fabric-pill-btn-unique fabric-chatter-shortcut-btn">
-                                    <i class="fa fa-comments-o text-primary"></i> Chatter
+                                    <i class="fa fa-comments-o text-primary" title="Chatter Shortcut"></i> Chatter
                                 </span>
                             </div>
                         </div>
@@ -100,10 +100,10 @@
                             <div class="p-3">
                                 <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
                                     <h6 class="fw-bold text-dark m-0">
-                                        <i class="fa fa-bar-chart me-2 text-primary"></i>FINANCIAL BALANCE &amp; PROFILE OVERVIEW
+                                        <i class="fa fa-bar-chart me-2 text-primary" title="Overview"></i>FINANCIAL BALANCE &amp; PROFILE OVERVIEW
                                     </h6>
                                     <span class="text-muted small">
-                                        <i class="fa fa-clock-o me-1"></i>Last Active: <field name="last_activity_date"/>
+                                        <i class="fa fa-clock-o me-1" title="Activity Time"></i>Last Active: <field name="last_activity_date"/>
                                     </span>
                                 </div>
                                 <div class="row g-3">
@@ -111,7 +111,7 @@
                                     <div class="col-md-4">
                                         <div class="bento-kpi-card bento-jama">
                                             <div class="bento-kpi-header">
-                                                <span class="bento-kpi-icon"><i class="fa fa-arrow-down"></i></span>
+                                                <span class="bento-kpi-icon"><i class="fa fa-arrow-down" title="Cash In"></i></span>
                                                 <span class="bento-kpi-title">TOTAL CASH IN (JAMA)</span>
                                             </div>
                                             <div class="bento-kpi-value text-success">
@@ -123,7 +123,7 @@
                                     <div class="col-md-4">
                                         <div class="bento-kpi-card bento-udhaar">
                                             <div class="bento-kpi-header">
-                                                <span class="bento-kpi-icon"><i class="fa fa-arrow-up"></i></span>
+                                                <span class="bento-kpi-icon"><i class="fa fa-arrow-up" title="Cash Out"></i></span>
                                                 <span class="bento-kpi-title">TOTAL CASH OUT (UDHAAR)</span>
                                             </div>
                                             <div class="bento-kpi-value text-dark">
@@ -135,7 +135,7 @@
                                     <div class="col-md-4">
                                         <div class="bento-kpi-card bento-net" decoration-danger="current_net_balance &lt; 0" decoration-success="current_net_balance &gt; 0">
                                             <div class="bento-kpi-header">
-                                                <span class="bento-kpi-icon"><i class="fa fa-balance-scale"></i></span>
+                                                <span class="bento-kpi-icon"><i class="fa fa-balance-scale" title="Balance"></i></span>
                                                 <span class="bento-kpi-title">CURRENT UDHAR BALANCE</span>
                                             </div>
                                             <div class="bento-kpi-value">
@@ -148,7 +148,7 @@
                                 <!-- STORE ADDRESS & CONTACT META ROW -->
                                 <div class="row mt-3 pt-2 border-top g-2 align-items-center">
                                     <div class="col-md-12 text-muted small">
-                                        <i class="fa fa-map-marker text-danger me-1"></i><strong>Store Address:</strong> <field name="store_address"/>
+                                        <i class="fa fa-map-marker text-danger me-1" title="Address"></i><strong>Store Address:</strong> <field name="store_address"/>
                                     </div>
                                 </div>
                             </div>
