@@ -81,34 +81,43 @@
                                     <span class="quick-balance-label">Net Due:</span>
                                     <span class="quick-balance-val"><field name="current_net_balance" widget="fabric_amount"/></span>
                                 </div>
-                                <!-- SUMMARY TOGGLE BUTTON -->
-                                <span role="button" class="fabric-pill-btn-unique fabric-toggle-summary-btn">
+                                <!-- SUMMARY DRAWER TRIGGER BUTTON -->
+                                <span role="button" class="fabric-pill-btn-unique fabric-toggle-summary-btn" title="Open Financial Summary &amp; Profile">
                                     <i class="fa fa-sliders text-primary" title="Summary Toggle"></i>
-                                    <span class="summary-btn-text">View Summary</span>
-                                    <i class="fa fa-chevron-down ms-1 summary-btn-arrow" title="Expand"></i>
+                                    <span class="summary-btn-text">Summary</span>
+                                    <i class="fa fa-chevron-right ms-1 summary-btn-arrow" title="Open Drawer"></i>
                                 </span>
-                                <!-- CHATTER SHORTCUT BUTTON -->
-                                <span role="button" class="fabric-pill-btn-unique fabric-chatter-shortcut-btn">
-                                    <i class="fa fa-comments-o text-primary" title="Chatter Shortcut"></i> Chatter
+                                <!-- CHATTER DRAWER TRIGGER BUTTON -->
+                                <span role="button" class="fabric-pill-btn-unique fabric-chatter-shortcut-btn" title="Open Activity &amp; Chatter Drawer">
+                                    <i class="fa fa-comments-o text-primary" title="Chatter Shortcut"></i>
+                                    <span class="chatter-btn-text">Chatter</span>
+                                    <i class="fa fa-chevron-right ms-1 chatter-btn-arrow" title="Open Drawer"></i>
                                 </span>
                             </div>
                         </div>
 
-                        <!-- BENTO DASHBOARD SUMMARY PANEL (NATIVELY HIDDEN, EXPANDS ON CLICK) -->
-                        <div class="fabric-unique-summary-card" style="display: none;">
+                        <!-- SLIDE-OVER INSPECTOR DRAWER: FINANCIAL SUMMARY (MOBILE & LAPTOP OPTIMIZED) -->
+                        <div class="fabric-slide-drawer fabric-summary-drawer" style="display: none;">
                             <div class="summary-card-accent"></div>
-                            <div class="p-3">
-                                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
-                                    <h6 class="fw-bold text-dark m-0">
-                                        <i class="fa fa-bar-chart me-2 text-primary" title="Overview"></i>FINANCIAL BALANCE &amp; PROFILE OVERVIEW
-                                    </h6>
-                                    <span class="text-muted small">
-                                        <i class="fa fa-clock-o me-1" title="Activity Time"></i>Last Active: <field name="last_activity_date"/>
-                                    </span>
+                            <div class="drawer-header-bar d-flex justify-content-between align-items-center p-3 border-bottom bg-light">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="drawer-header-icon-box">
+                                        <i class="fa fa-bar-chart text-primary" title="Overview"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold text-dark m-0" style="font-size: 1.05rem;">FINANCIAL SUMMARY &amp; PROFILE</h5>
+                                        <span class="text-muted small">
+                                            <i class="fa fa-clock-o me-1" title="Time"></i>Last Active: <field name="last_activity_date"/>
+                                        </span>
+                                    </div>
                                 </div>
+                                <span role="button" class="fabric-drawer-close-btn" title="Close Drawer">&times;</span>
+                            </div>
+
+                            <div class="drawer-body-scroll p-3">
+                                <!-- 3 KPI BENTO CARDS -->
                                 <div class="row g-3">
-                                    <!-- 3 KPI BENTO CARDS -->
-                                    <div class="col-md-4">
+                                    <div class="col-12">
                                         <div class="bento-kpi-card bento-jama">
                                             <div class="bento-kpi-header">
                                                 <span class="bento-kpi-icon"><i class="fa fa-arrow-down" title="Cash In"></i></span>
@@ -120,7 +129,7 @@
                                             <div class="bento-kpi-sub">Total Payments Received</div>
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-12">
                                         <div class="bento-kpi-card bento-udhaar">
                                             <div class="bento-kpi-header">
                                                 <span class="bento-kpi-icon"><i class="fa fa-arrow-up" title="Cash Out"></i></span>
@@ -132,7 +141,7 @@
                                             <div class="bento-kpi-sub">Total Fabric Sales Billed</div>
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-12">
                                         <div class="bento-kpi-card bento-net" decoration-danger="current_net_balance &lt; 0" decoration-success="current_net_balance &gt; 0">
                                             <div class="bento-kpi-header">
                                                 <span class="bento-kpi-icon"><i class="fa fa-balance-scale" title="Balance"></i></span>
@@ -145,10 +154,19 @@
                                         </div>
                                     </div>
                                 </div>
-                                <!-- STORE ADDRESS & CONTACT META ROW -->
-                                <div class="row mt-3 pt-2 border-top g-2 align-items-center">
-                                    <div class="col-md-12 text-muted small">
-                                        <i class="fa fa-map-marker text-danger me-1" title="Address"></i><strong>Store Address:</strong> <field name="store_address"/>
+
+                                <!-- CUSTOMER DETAILS CARD -->
+                                <div class="card border-0 bg-light p-3 mt-3 rounded-3">
+                                    <h6 class="fw-bold text-dark mb-2">
+                                        <i class="fa fa-address-card-o me-2 text-primary" title="Details"></i>Customer Contact Details
+                                    </h6>
+                                    <div class="mb-2 text-muted small">
+                                        <i class="fa fa-map-marker text-danger me-2" title="Address"></i><strong>Store Address:</strong>
+                                        <div class="mt-1 ps-3 text-dark"><field name="store_address"/></div>
+                                    </div>
+                                    <div class="text-muted small">
+                                        <i class="fa fa-phone text-success me-2" title="Phone"></i><strong>Contact Phone:</strong>
+                                        <span class="text-dark ms-1"><field name="phone"/></span>
                                     </div>
                                 </div>
                             </div>

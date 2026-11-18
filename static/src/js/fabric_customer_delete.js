@@ -14,99 +14,193 @@ patch(FormController.prototype, {
         if (this.props.resModel === "fabric.customer") {
             let scrollTimer = null;
 
-            const initSummaryToggle = (root) => {
-                if (!root) return;
-                const toggleBtn = root.querySelector(".fabric-toggle-summary-btn");
-                const summaryCard = root.querySelector(".fabric-unique-summary-card");
-                if (toggleBtn && summaryCard && !toggleBtn._hasFabricClick) {
-                    toggleBtn._hasFabricClick = true;
-                    toggleBtn.addEventListener("click", (e) => {
-                        e.preventDefault();
-                        const isHidden = summaryCard.style.display === "none";
-                        summaryCard.style.display = isHidden ? "block" : "none";
-                        toggleBtn.classList.toggle("is-open", isHidden);
-                        const label = toggleBtn.querySelector(".summary-btn-text");
-                        const arrow = toggleBtn.querySelector(".summary-btn-arrow");
-                        if (label) label.textContent = isHidden ? "Hide Summary" : "View Summary";
-                        if (arrow) {
-                            arrow.className = isHidden ? "fa fa-chevron-up ms-1 summary-btn-arrow" : "fa fa-chevron-down ms-1 summary-btn-arrow";
-                        }
+            const getBackdrop = () => {
+                let backdrop = document.querySelector(".fabric-drawer-backdrop");
+                if (!backdrop) {
+                    backdrop = document.createElement("div");
+                    backdrop.className = "fabric-drawer-backdrop";
+                    backdrop.style.display = "none";
+                    document.body.appendChild(backdrop);
+                    backdrop.addEventListener("click", () => {
+                        closeAllDrawers();
                     });
                 }
+                return backdrop;
             };
 
-            const initChatterShortcut = (root) => {
-                if (!root) return;
-                const shortcutBtn = root.querySelector(".fabric-chatter-shortcut-btn");
-                if (shortcutBtn && !shortcutBtn._hasFabricClick) {
-                    shortcutBtn._hasFabricClick = true;
-                    shortcutBtn.addEventListener("click", (e) => {
-                        e.preventDefault();
-                        const chatter = root.querySelector(".o-mail-Form-chatter") || root.querySelector(".o-mail-ChatterContainer");
-                        const toggleBar = root.querySelector(".fabric-chatter-minimal-divider");
-                        if (chatter) {
-                            chatter.style.display = "";
-                            if (toggleBar) {
-                                const pill = toggleBar.querySelector(".chatter-toggle-pill");
-                                if (pill) {
-                                    pill.classList.add("is-open");
-                                    const chevron = pill.querySelector(".chatter-chevron");
-                                    if (chevron) chevron.className = "fa fa-chevron-up ms-1 chatter-chevron";
-                                }
-                            }
-                            chatter.scrollIntoView({ behavior: "smooth", block: "start" });
+            const closeAllDrawers = () => {
+                const summaryDrawer = document.querySelector(".fabric-summary-drawer");
+                const chatterDrawer = document.querySelector(".fabric-chatter-drawer");
+                const backdrop = document.querySelector(".fabric-drawer-backdrop");
+                const summaryBtn = document.querySelector(".fabric-toggle-summary-btn");
+                const chatterBtn = document.querySelector(".fabric-chatter-shortcut-btn");
+
+                if (summaryDrawer) {
+                    summaryDrawer.classList.remove("is-open");
+                    setTimeout(() => {
+                        if (!summaryDrawer.classList.contains("is-open")) {
+                            summaryDrawer.style.display = "none";
                         }
+                    }, 300);
+                }
+                if (chatterDrawer) {
+                    chatterDrawer.classList.remove("is-open");
+                    setTimeout(() => {
+                        if (!chatterDrawer.classList.contains("is-open")) {
+                            chatterDrawer.style.display = "none";
+                        }
+                    }, 300);
+                }
+                if (backdrop) {
+                    backdrop.classList.remove("is-open");
+                    setTimeout(() => {
+                        if (!backdrop.classList.contains("is-open")) {
+                            backdrop.style.display = "none";
+                        }
+                    }, 300);
+                }
+                if (summaryBtn) summaryBtn.classList.remove("is-active");
+                if (chatterBtn) chatterBtn.classList.remove("is-active");
+            };
+
+            const openSummaryDrawer = (root) => {
+                const summaryDrawer = root.querySelector(".fabric-summary-drawer");
+                const chatterDrawer = root.querySelector(".fabric-chatter-drawer") || document.querySelector(".fabric-chatter-drawer");
+                const backdrop = getBackdrop();
+                const summaryBtn = root.querySelector(".fabric-toggle-summary-btn");
+                const chatterBtn = root.querySelector(".fabric-chatter-shortcut-btn");
+
+                if (summaryDrawer && summaryDrawer.classList.contains("is-open")) {
+                    closeAllDrawers();
+                    return;
+                }
+
+                if (chatterDrawer) {
+                    chatterDrawer.classList.remove("is-open");
+                    chatterDrawer.style.display = "none";
+                }
+                if (chatterBtn) chatterBtn.classList.remove("is-active");
+
+                if (summaryDrawer) {
+                    summaryDrawer.style.display = "flex";
+                    summaryDrawer.offsetHeight;
+                    summaryDrawer.classList.add("is-open");
+                }
+                if (backdrop) {
+                    backdrop.style.display = "block";
+                    backdrop.offsetHeight;
+                    backdrop.classList.add("is-open");
+                }
+                if (summaryBtn) summaryBtn.classList.add("is-active");
+            };
+
+            const openChatterDrawer = (root) => {
+                const chatterDrawer = root.querySelector(".fabric-chatter-drawer") || document.querySelector(".fabric-chatter-drawer");
+                const summaryDrawer = root.querySelector(".fabric-summary-drawer");
+                const backdrop = getBackdrop();
+                const summaryBtn = root.querySelector(".fabric-toggle-summary-btn");
+                const chatterBtn = root.querySelector(".fabric-chatter-shortcut-btn");
+
+                if (chatterDrawer && chatterDrawer.classList.contains("is-open")) {
+                    closeAllDrawers();
+                    return;
+                }
+
+                if (summaryDrawer) {
+                    summaryDrawer.classList.remove("is-open");
+                    summaryDrawer.style.display = "none";
+                }
+                if (summaryBtn) summaryBtn.classList.remove("is-active");
+
+                if (chatterDrawer) {
+                    chatterDrawer.style.display = "flex";
+                    chatterDrawer.offsetHeight;
+                    chatterDrawer.classList.add("is-open");
+                }
+                if (backdrop) {
+                    backdrop.style.display = "block";
+                    backdrop.offsetHeight;
+                    backdrop.classList.add("is-open");
+                }
+                if (chatterBtn) chatterBtn.classList.add("is-active");
+            };
+
+            const initDrawers = (root) => {
+                if (!root) return;
+                getBackdrop();
+
+                // Setup Summary Drawer Close Button
+                const summaryClose = root.querySelector(".fabric-summary-drawer .fabric-drawer-close-btn");
+                if (summaryClose && !summaryClose._hasFabricClick) {
+                    summaryClose._hasFabricClick = true;
+                    summaryClose.addEventListener("click", (e) => {
+                        e.preventDefault();
+                        closeAllDrawers();
                     });
                 }
-            };
 
-            const initChatterCollapse = (root) => {
-                if (!root) return;
+                // Setup Summary Trigger Button
+                const summaryBtn = root.querySelector(".fabric-toggle-summary-btn");
+                if (summaryBtn && !summaryBtn._hasFabricClick) {
+                    summaryBtn._hasFabricClick = true;
+                    summaryBtn.addEventListener("click", (e) => {
+                        e.preventDefault();
+                        openSummaryDrawer(root);
+                    });
+                }
+
+                // Setup Chatter Drawer
                 const chatter = root.querySelector(".o-mail-Form-chatter") || root.querySelector(".o-mail-ChatterContainer");
-                if (!chatter) return;
+                if (chatter) {
+                    chatter.classList.add("fabric-slide-drawer", "fabric-chatter-drawer");
+                    if (!chatter.classList.contains("is-open")) {
+                        chatter.style.display = "none";
+                    }
 
-                let toggleBar = root.querySelector(".fabric-chatter-minimal-divider");
-                if (!toggleBar) {
-                    toggleBar = document.createElement("div");
-                    toggleBar.className = "fabric-chatter-minimal-divider";
-                    toggleBar.innerHTML = `
-                        <div class="divider-line"></div>
-                        <span role="button" class="fabric-pill-btn-unique chatter-toggle-pill">
-                            <i class="fa fa-comments-o text-primary"></i>
-                            <span class="chatter-label">Activity Notes, Logs &amp; Message History</span>
-                            <i class="fa fa-chevron-down ms-1 chatter-chevron"></i>
-                        </span>
-                    `;
-                    chatter.parentNode.insertBefore(toggleBar, chatter);
+                    let headerBar = chatter.querySelector(".chatter-drawer-header-bar");
+                    if (!headerBar) {
+                        headerBar = document.createElement("div");
+                        headerBar.className = "chatter-drawer-header-bar drawer-header-bar d-flex justify-content-between align-items-center p-3 border-bottom bg-light";
+                        headerBar.innerHTML = `
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="drawer-header-icon-box">
+                                    <i class="fa fa-comments text-primary" title="Chatter"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold text-dark m-0" style="font-size: 1.05rem;">ACTIVITY &amp; CHATTER HISTORY</h5>
+                                    <span class="text-muted small">Notes, Logs &amp; Message History</span>
+                                </div>
+                            </div>
+                            <span role="button" class="fabric-drawer-close-btn" title="Close Drawer">&times;</span>
+                        `;
+                        chatter.insertBefore(headerBar, chatter.firstChild);
 
-                    // Natively hide chatter by default
-                    chatter.style.display = "none";
-
-                    toggleBar.querySelector(".chatter-toggle-pill").addEventListener("click", () => {
-                        const isHidden = chatter.style.display === "none";
-                        const pill = toggleBar.querySelector(".chatter-toggle-pill");
-                        const chevron = toggleBar.querySelector(".chatter-chevron");
-                        if (isHidden) {
-                            chatter.style.display = "";
-                            pill.classList.add("is-open");
-                            if (chevron) chevron.className = "fa fa-chevron-up ms-1 chatter-chevron";
-                        } else {
-                            chatter.style.display = "none";
-                            pill.classList.remove("is-open");
-                            if (chevron) chevron.className = "fa fa-chevron-down ms-1 chatter-chevron";
-                        }
-                    });
-                } else {
-                    // Reset to collapsed when switching records
-                    chatter.style.display = "none";
-                    const pill = toggleBar.querySelector(".chatter-toggle-pill");
-                    if (pill) {
-                        pill.classList.remove("is-open");
-                        const chevron = pill.querySelector(".chatter-chevron");
-                        if (chevron) chevron.className = "fa fa-chevron-down ms-1 chatter-chevron";
+                        headerBar.querySelector(".fabric-drawer-close-btn").addEventListener("click", (e) => {
+                            e.preventDefault();
+                            closeAllDrawers();
+                        });
                     }
                 }
+
+                // Setup Chatter Trigger Button
+                const chatterBtn = root.querySelector(".fabric-chatter-shortcut-btn");
+                if (chatterBtn && !chatterBtn._hasFabricClick) {
+                    chatterBtn._hasFabricClick = true;
+                    chatterBtn.addEventListener("click", (e) => {
+                        e.preventDefault();
+                        openChatterDrawer(root);
+                    });
+                }
             };
+
+            if (!window._fabricEscapeHandlerBound) {
+                window._fabricEscapeHandlerBound = true;
+                document.addEventListener("keydown", (e) => {
+                    if (e.key === "Escape") {
+                        closeAllDrawers();
+                    }
+                });
+            }
 
             const scrollToTotal = () => {
                 if (scrollTimer) {
@@ -126,10 +220,8 @@ patch(FormController.prototype, {
                         return;
                     }
 
-                    // Initialize UI enhancements
-                    initSummaryToggle(root);
-                    initChatterShortcut(root);
-                    initChatterCollapse(root);
+                    // Initialize Slide-Over Drawers
+                    initDrawers(root);
 
                     const tfoot = root.querySelector("[name='transaction_ids'] tfoot") ||
                                   root.querySelector("[name='transaction_ids'] .o_list_footer");
@@ -160,6 +252,7 @@ patch(FormController.prototype, {
 
             useEffect(
                 (resId) => {
+                    closeAllDrawers();
                     if (resId) {
                         scrollToTotal();
                     }
@@ -168,6 +261,7 @@ patch(FormController.prototype, {
             );
 
             onWillUnmount(() => {
+                closeAllDrawers();
                 if (scrollTimer) {
                     clearInterval(scrollTimer);
                     scrollTimer = null;
