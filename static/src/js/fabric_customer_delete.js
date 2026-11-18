@@ -14,56 +14,97 @@ patch(FormController.prototype, {
         if (this.props.resModel === "fabric.customer") {
             let scrollTimer = null;
 
+            const initSummaryToggle = (root) => {
+                if (!root) return;
+                const toggleBtn = root.querySelector(".fabric-toggle-summary-btn");
+                const summaryCard = root.querySelector(".fabric-unique-summary-card");
+                if (toggleBtn && summaryCard && !toggleBtn._hasFabricClick) {
+                    toggleBtn._hasFabricClick = true;
+                    toggleBtn.addEventListener("click", (e) => {
+                        e.preventDefault();
+                        const isHidden = summaryCard.style.display === "none";
+                        summaryCard.style.display = isHidden ? "block" : "none";
+                        toggleBtn.classList.toggle("is-open", isHidden);
+                        const label = toggleBtn.querySelector(".summary-btn-text");
+                        const arrow = toggleBtn.querySelector(".summary-btn-arrow");
+                        if (label) label.textContent = isHidden ? "Hide Summary" : "View Summary";
+                        if (arrow) {
+                            arrow.className = isHidden ? "fa fa-chevron-up ms-1 summary-btn-arrow" : "fa fa-chevron-down ms-1 summary-btn-arrow";
+                        }
+                    });
+                }
+            };
+
+            const initChatterShortcut = (root) => {
+                if (!root) return;
+                const shortcutBtn = root.querySelector(".fabric-chatter-shortcut-btn");
+                if (shortcutBtn && !shortcutBtn._hasFabricClick) {
+                    shortcutBtn._hasFabricClick = true;
+                    shortcutBtn.addEventListener("click", (e) => {
+                        e.preventDefault();
+                        const chatter = root.querySelector(".o-mail-Form-chatter") || root.querySelector(".o-mail-ChatterContainer");
+                        const toggleBar = root.querySelector(".fabric-chatter-minimal-divider");
+                        if (chatter) {
+                            chatter.style.display = "";
+                            if (toggleBar) {
+                                const pill = toggleBar.querySelector(".chatter-toggle-pill");
+                                if (pill) {
+                                    pill.classList.add("is-open");
+                                    const chevron = pill.querySelector(".chatter-chevron");
+                                    if (chevron) chevron.className = "fa fa-chevron-up ms-1 chatter-chevron";
+                                }
+                            }
+                            chatter.scrollIntoView({ behavior: "smooth", block: "start" });
+                        }
+                    });
+                }
+            };
+
             const initChatterCollapse = (root) => {
                 if (!root) return;
                 const chatter = root.querySelector(".o-mail-Form-chatter") || root.querySelector(".o-mail-ChatterContainer");
                 if (!chatter) return;
 
-                let toggleBar = root.querySelector(".fabric-chatter-accordion");
+                let toggleBar = root.querySelector(".fabric-chatter-minimal-divider");
                 if (!toggleBar) {
                     toggleBar = document.createElement("div");
-                    toggleBar.className = "fabric-customer-details-accordion fabric-chatter-accordion";
+                    toggleBar.className = "fabric-chatter-minimal-divider";
                     toggleBar.innerHTML = `
-                        <div class="fabric-details-toggle">
-                            <div class="d-flex align-items-center gap-2">
-                                <i class="fa fa-comments-o toggle-icon"></i>
-                                <span class="toggle-title">Activity Notes, Logs &amp; Message History (Chatter)</span>
-                            </div>
-                            <div class="d-flex align-items-center">
-                                <span class="fabric-pill-btn chatter-show-pill">View Chatter <i class="fa fa-chevron-down ms-1"></i></span>
-                                <span class="fabric-pill-btn chatter-hide-pill" style="display: none !important;">Hide Chatter <i class="fa fa-chevron-up ms-1"></i></span>
-                            </div>
-                        </div>
+                        <div class="divider-line"></div>
+                        <span role="button" class="fabric-pill-btn-unique chatter-toggle-pill">
+                            <i class="fa fa-comments-o text-primary"></i>
+                            <span class="chatter-label">Activity Notes, Logs &amp; Message History</span>
+                            <i class="fa fa-chevron-down ms-1 chatter-chevron"></i>
+                        </span>
                     `;
                     chatter.parentNode.insertBefore(toggleBar, chatter);
 
                     // Natively hide chatter by default
                     chatter.style.display = "none";
 
-                    toggleBar.querySelector(".fabric-details-toggle").addEventListener("click", () => {
+                    toggleBar.querySelector(".chatter-toggle-pill").addEventListener("click", () => {
                         const isHidden = chatter.style.display === "none";
+                        const pill = toggleBar.querySelector(".chatter-toggle-pill");
+                        const chevron = toggleBar.querySelector(".chatter-chevron");
                         if (isHidden) {
                             chatter.style.display = "";
-                            toggleBar.classList.add("is-open");
-                            toggleBar.querySelector(".chatter-show-pill").style.setProperty("display", "none", "important");
-                            toggleBar.querySelector(".chatter-hide-pill").style.setProperty("display", "inline-flex", "important");
+                            pill.classList.add("is-open");
+                            if (chevron) chevron.className = "fa fa-chevron-up ms-1 chatter-chevron";
                         } else {
                             chatter.style.display = "none";
-                            toggleBar.classList.remove("is-open");
-                            toggleBar.querySelector(".chatter-show-pill").style.setProperty("display", "inline-flex", "important");
-                            toggleBar.querySelector(".chatter-hide-pill").style.setProperty("display", "none", "important");
+                            pill.classList.remove("is-open");
+                            if (chevron) chevron.className = "fa fa-chevron-down ms-1 chatter-chevron";
                         }
                     });
                 } else {
                     // Reset to collapsed when switching records
                     chatter.style.display = "none";
-                    toggleBar.classList.remove("is-open");
-                    const showPill = toggleBar.querySelector(".chatter-show-pill");
-                    const hidePill = toggleBar.querySelector(".chatter-hide-pill");
-                    const arrow = toggleBar.querySelector(".accordion-arrow");
-                    if (showPill) showPill.style.setProperty("display", "inline-flex", "important");
-                    if (hidePill) hidePill.style.setProperty("display", "none", "important");
-                    if (arrow) arrow.style.transform = "";
+                    const pill = toggleBar.querySelector(".chatter-toggle-pill");
+                    if (pill) {
+                        pill.classList.remove("is-open");
+                        const chevron = pill.querySelector(".chatter-chevron");
+                        if (chevron) chevron.className = "fa fa-chevron-down ms-1 chatter-chevron";
+                    }
                 }
             };
 
@@ -85,7 +126,9 @@ patch(FormController.prototype, {
                         return;
                     }
 
-                    // Initialize chatter collapse
+                    // Initialize UI enhancements
+                    initSummaryToggle(root);
+                    initChatterShortcut(root);
                     initChatterCollapse(root);
 
                     const tfoot = root.querySelector("[name='transaction_ids'] tfoot") ||

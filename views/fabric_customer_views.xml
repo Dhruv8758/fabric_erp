@@ -59,77 +59,101 @@
                     <field name="status" widget="statusbar" statusbar_visible="clear,udhaar_due"/>
                 </header>
                 <sheet>
-                    <div class="mb-3 w-100 p-0 m-0">
-                        <label for="name" string="Customer Name &amp; Store" class="fw-bold text-muted"/>
-                        <h1><field name="name" placeholder="Store Name (e.g. Surat Fabrics Store)"/></h1>
-                    </div>
-
-                    <!-- COLLAPSIBLE CUSTOMER DETAILS & FINANCIAL SUMMARY (NATIVELY HIDDEN) -->
-                    <details class="fabric-customer-details-accordion mb-3">
-                        <summary class="fabric-details-toggle">
-                            <div class="d-flex align-items-center gap-2">
-                                <i class="fa fa-id-card-o toggle-icon"></i>
-                                <span class="toggle-title details-show-text">Customer Details &amp; Financial Balance Summary</span>
-                                <span class="toggle-title details-hide-text">Customer Details &amp; Financial Balance Summary</span>
+                    <!-- UNIQUE MODERN CUSTOMER COMMAND HERO -->
+                    <div class="fabric-customer-hero-header mb-3">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 pb-3 border-bottom">
+                            <div>
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <span class="badge bg-secondary-subtle text-secondary fw-bold px-2 py-1" style="font-size: 0.7rem; letter-spacing: 0.05em; text-transform: uppercase;">Customer Khata</span>
+                                    <span class="text-muted small">•</span>
+                                    <span class="text-muted small"><i class="fa fa-id-badge text-primary me-1"></i><field name="code"/></span>
+                                    <span class="text-muted small">•</span>
+                                    <span class="text-muted small"><i class="fa fa-phone text-success me-1"></i><field name="phone"/></span>
+                                </div>
+                                <h1 class="fw-bold text-dark m-0" style="font-size: 1.85rem; letter-spacing: -0.02em;">
+                                    <field name="name" placeholder="Customer / Store Name"/>
+                                </h1>
                             </div>
-                            <div class="d-flex align-items-center">
-                                <span class="fabric-pill-btn details-show-text">View Details <i class="fa fa-chevron-down ms-1"></i></span>
-                                <span class="fabric-pill-btn details-hide-text">Hide Details <i class="fa fa-chevron-up ms-1"></i></span>
+                            <div class="d-flex align-items-center flex-wrap gap-2">
+                                <!-- QUICK BALANCE CAPSULE -->
+                                <div class="fabric-quick-balance-pill" decoration-danger="current_net_balance &lt; 0" decoration-success="current_net_balance &gt;= 0">
+                                    <span class="quick-balance-dot"></span>
+                                    <span class="quick-balance-label">Net Due:</span>
+                                    <span class="quick-balance-val"><field name="current_net_balance" widget="fabric_amount"/></span>
+                                </div>
+                                <!-- SUMMARY TOGGLE BUTTON -->
+                                <span role="button" class="fabric-pill-btn-unique fabric-toggle-summary-btn">
+                                    <i class="fa fa-sliders text-primary"></i>
+                                    <span class="summary-btn-text">View Summary</span>
+                                    <i class="fa fa-chevron-down ms-1 summary-btn-arrow"></i>
+                                </span>
+                                <!-- CHATTER SHORTCUT BUTTON -->
+                                <span role="button" class="fabric-pill-btn-unique fabric-chatter-shortcut-btn">
+                                    <i class="fa fa-comments-o text-primary"></i> Chatter
+                                </span>
                             </div>
-                        </summary>
-                        <div class="details-content">
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <div class="card shadow-sm border-secondary-subtle p-3 h-100 bg-light">
-                                        <h5 class="fw-bold text-primary mb-3">
-                                            <i class="fa fa-user me-2"></i>CUSTOMER INFORMATION &amp; IDENTITY
-                                        </h5>
-                                        <table class="table table-borderless table-sm m-0">
-                                            <tr>
-                                                <td class="fw-bold text-muted" style="width:35%;">Customer ID:</td>
-                                                <td><field name="code" class="fw-bold"/></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="fw-bold text-muted">Contact Phone:</td>
-                                                <td><field name="phone"/></td>
-                                            </tr>
+                        </div>
 
-                                            <tr>
-                                                <td class="fw-bold text-muted">Store Address:</td>
-                                                <td><field name="store_address"/></td>
-                                            </tr>
-                                            <tr>
-                                                <td class="fw-bold text-muted">Last Activity Date:</td>
-                                                <td><field name="last_activity_date"/></td>
-                                            </tr>
-                                        </table>
+                        <!-- BENTO DASHBOARD SUMMARY PANEL (NATIVELY HIDDEN, EXPANDS ON CLICK) -->
+                        <div class="fabric-unique-summary-card" style="display: none;">
+                            <div class="summary-card-accent"></div>
+                            <div class="p-3">
+                                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                                    <h6 class="fw-bold text-dark m-0">
+                                        <i class="fa fa-bar-chart me-2 text-primary"></i>FINANCIAL BALANCE &amp; PROFILE OVERVIEW
+                                    </h6>
+                                    <span class="text-muted small">
+                                        <i class="fa fa-clock-o me-1"></i>Last Active: <field name="last_activity_date"/>
+                                    </span>
+                                </div>
+                                <div class="row g-3">
+                                    <!-- 3 KPI BENTO CARDS -->
+                                    <div class="col-md-4">
+                                        <div class="bento-kpi-card bento-jama">
+                                            <div class="bento-kpi-header">
+                                                <span class="bento-kpi-icon"><i class="fa fa-arrow-down"></i></span>
+                                                <span class="bento-kpi-title">TOTAL CASH IN (JAMA)</span>
+                                            </div>
+                                            <div class="bento-kpi-value text-success">
+                                                <field name="paid_amount" widget="fabric_amount"/>
+                                            </div>
+                                            <div class="bento-kpi-sub">Total Payments Received</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="bento-kpi-card bento-udhaar">
+                                            <div class="bento-kpi-header">
+                                                <span class="bento-kpi-icon"><i class="fa fa-arrow-up"></i></span>
+                                                <span class="bento-kpi-title">TOTAL CASH OUT (UDHAAR)</span>
+                                            </div>
+                                            <div class="bento-kpi-value text-dark">
+                                                <field name="total_sales" widget="fabric_amount"/>
+                                            </div>
+                                            <div class="bento-kpi-sub">Total Fabric Sales Billed</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="bento-kpi-card bento-net" decoration-danger="current_net_balance &lt; 0" decoration-success="current_net_balance &gt; 0">
+                                            <div class="bento-kpi-header">
+                                                <span class="bento-kpi-icon"><i class="fa fa-balance-scale"></i></span>
+                                                <span class="bento-kpi-title">CURRENT UDHAR BALANCE</span>
+                                            </div>
+                                            <div class="bento-kpi-value">
+                                                <field name="current_net_balance" widget="fabric_amount"/>
+                                            </div>
+                                            <div class="bento-kpi-sub">Net Outstanding Position</div>
+                                        </div>
                                     </div>
                                 </div>
-
-                                <div class="col-md-6">
-                                    <div class="card shadow-sm border-secondary-subtle p-3 h-100 bg-light">
-                                        <h5 class="fw-bold text-success mb-3">
-                                            <i class="fa fa-calculator me-2"></i>FINANCIAL BALANCE SUMMARY
-                                        </h5>
-                                        <div class="row text-center mt-2">
-                                            <div class="col-4 border-end">
-                                                <span class="text-muted small fw-bold text-uppercase d-block">TOTAL CASH IN (JAMA)</span>
-                                                <h4 class="fw-bold text-success m-0 mt-1"><field name="paid_amount" widget="fabric_amount"/></h4>
-                                            </div>
-                                            <div class="col-4 border-end">
-                                                <span class="text-muted small fw-bold text-uppercase d-block">TOTAL CASH OUT (UDHAAR)</span>
-                                                <h4 class="fw-bold text-dark m-0 mt-1"><field name="total_sales" widget="fabric_amount"/></h4>
-                                            </div>
-                                            <div class="col-4">
-                                                <span class="text-muted small fw-bold text-uppercase d-block">CURRENT UDHAR BALANCE</span>
-                                                <h4 class="fw-bold m-0 mt-1" decoration-danger="current_net_balance &lt; 0" decoration-success="current_net_balance &gt; 0"><field name="current_net_balance" widget="fabric_amount"/></h4>
-                                            </div>
-                                        </div>
+                                <!-- STORE ADDRESS & CONTACT META ROW -->
+                                <div class="row mt-3 pt-2 border-top g-2 align-items-center">
+                                    <div class="col-md-12 text-muted small">
+                                        <i class="fa fa-map-marker text-danger me-1"></i><strong>Store Address:</strong> <field name="store_address"/>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </details>
+                    </div>
 
                     <!-- COMPLETE TRANSACTION LEDGER STATEMENT TABLE -->
                     <div class="mt-4">
