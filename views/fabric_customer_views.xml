@@ -97,7 +97,7 @@
                         </div>
 
                         <!-- SLIDE-OVER INSPECTOR DRAWER: FINANCIAL SUMMARY (MOBILE & LAPTOP OPTIMIZED) -->
-                        <div class="fabric-slide-drawer fabric-summary-drawer" style="display: none;">
+                        <div class="fabric-slide-drawer fabric-summary-drawer">
                             <div class="summary-card-accent"></div>
                             <div class="drawer-header-bar d-flex justify-content-between align-items-center p-3 border-bottom bg-light">
                                 <div class="d-flex align-items-center gap-2">

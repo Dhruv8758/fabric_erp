@@ -35,36 +35,15 @@ patch(FormController.prototype, {
                 const summaryBtn = document.querySelector(".fabric-toggle-summary-btn");
                 const chatterBtn = document.querySelector(".fabric-chatter-shortcut-btn");
 
-                if (summaryDrawer) {
-                    summaryDrawer.classList.remove("is-open");
-                    setTimeout(() => {
-                        if (!summaryDrawer.classList.contains("is-open")) {
-                            summaryDrawer.style.display = "none";
-                        }
-                    }, 300);
-                }
-                if (chatterDrawer) {
-                    chatterDrawer.classList.remove("is-open");
-                    setTimeout(() => {
-                        if (!chatterDrawer.classList.contains("is-open")) {
-                            chatterDrawer.style.display = "none";
-                        }
-                    }, 300);
-                }
-                if (backdrop) {
-                    backdrop.classList.remove("is-open");
-                    setTimeout(() => {
-                        if (!backdrop.classList.contains("is-open")) {
-                            backdrop.style.display = "none";
-                        }
-                    }, 300);
-                }
+                if (summaryDrawer) summaryDrawer.classList.remove("is-open");
+                if (chatterDrawer) chatterDrawer.classList.remove("is-open");
+                if (backdrop) backdrop.classList.remove("is-open");
                 if (summaryBtn) summaryBtn.classList.remove("is-active");
                 if (chatterBtn) chatterBtn.classList.remove("is-active");
             };
 
             const openSummaryDrawer = (root) => {
-                const summaryDrawer = root.querySelector(".fabric-summary-drawer");
+                const summaryDrawer = root.querySelector(".fabric-summary-drawer") || document.querySelector(".fabric-summary-drawer");
                 const chatterDrawer = root.querySelector(".fabric-chatter-drawer") || document.querySelector(".fabric-chatter-drawer");
                 const backdrop = getBackdrop();
                 const summaryBtn = root.querySelector(".fabric-toggle-summary-btn");
@@ -75,28 +54,17 @@ patch(FormController.prototype, {
                     return;
                 }
 
-                if (chatterDrawer) {
-                    chatterDrawer.classList.remove("is-open");
-                    chatterDrawer.style.display = "none";
-                }
+                if (chatterDrawer) chatterDrawer.classList.remove("is-open");
                 if (chatterBtn) chatterBtn.classList.remove("is-active");
 
-                if (summaryDrawer) {
-                    summaryDrawer.style.display = "flex";
-                    summaryDrawer.offsetHeight;
-                    summaryDrawer.classList.add("is-open");
-                }
-                if (backdrop) {
-                    backdrop.style.display = "block";
-                    backdrop.offsetHeight;
-                    backdrop.classList.add("is-open");
-                }
+                if (summaryDrawer) summaryDrawer.classList.add("is-open");
+                if (backdrop) backdrop.classList.add("is-open");
                 if (summaryBtn) summaryBtn.classList.add("is-active");
             };
 
             const openChatterDrawer = (root) => {
                 const chatterDrawer = root.querySelector(".fabric-chatter-drawer") || document.querySelector(".fabric-chatter-drawer");
-                const summaryDrawer = root.querySelector(".fabric-summary-drawer");
+                const summaryDrawer = root.querySelector(".fabric-summary-drawer") || document.querySelector(".fabric-summary-drawer");
                 const backdrop = getBackdrop();
                 const summaryBtn = root.querySelector(".fabric-toggle-summary-btn");
                 const chatterBtn = root.querySelector(".fabric-chatter-shortcut-btn");
@@ -106,22 +74,11 @@ patch(FormController.prototype, {
                     return;
                 }
 
-                if (summaryDrawer) {
-                    summaryDrawer.classList.remove("is-open");
-                    summaryDrawer.style.display = "none";
-                }
+                if (summaryDrawer) summaryDrawer.classList.remove("is-open");
                 if (summaryBtn) summaryBtn.classList.remove("is-active");
 
-                if (chatterDrawer) {
-                    chatterDrawer.style.display = "flex";
-                    chatterDrawer.offsetHeight;
-                    chatterDrawer.classList.add("is-open");
-                }
-                if (backdrop) {
-                    backdrop.style.display = "block";
-                    backdrop.offsetHeight;
-                    backdrop.classList.add("is-open");
-                }
+                if (chatterDrawer) chatterDrawer.classList.add("is-open");
+                if (backdrop) backdrop.classList.add("is-open");
                 if (chatterBtn) chatterBtn.classList.add("is-active");
             };
 
@@ -153,9 +110,6 @@ patch(FormController.prototype, {
                 const chatter = root.querySelector(".o-mail-Form-chatter") || root.querySelector(".o-mail-ChatterContainer");
                 if (chatter) {
                     chatter.classList.add("fabric-slide-drawer", "fabric-chatter-drawer");
-                    if (!chatter.classList.contains("is-open")) {
-                        chatter.style.display = "none";
-                    }
 
                     let headerBar = chatter.querySelector(".chatter-drawer-header-bar");
                     if (!headerBar) {
@@ -171,7 +125,7 @@ patch(FormController.prototype, {
                                     <span class="text-muted small">Notes, Logs &amp; Message History</span>
                                 </div>
                             </div>
-                            <span role="button" class="fabric-drawer-close-btn" title="Close Drawer">&times;</span>
+                            <span role="button" class="fabric-drawer-close-btn" title="Close Drawer">&#215;</span>
                         `;
                         chatter.insertBefore(headerBar, chatter.firstChild);
 

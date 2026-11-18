@@ -212,12 +212,16 @@ input[type="number"] {
     backdrop-filter: blur(4px) !important;
     -webkit-backdrop-filter: blur(4px) !important;
     z-index: 1055 !important;
-    opacity: 0;
-    transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.28s ease !important;
 }
 
 .fabric-drawer-backdrop.is-open {
     opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
 }
 
 /* Slide-Over Inspector Drawer: Shared Mobile & Laptop Engine */
@@ -231,12 +235,16 @@ input[type="number"] {
     display: flex !important;
     flex-direction: column !important;
     transform: translateX(105%) !important;
-    transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.28s ease !important;
     overflow: hidden !important;
 }
 
 .fabric-slide-drawer.is-open {
     transform: translateX(0) !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
 }
 
 /* Laptop / Desktop View (>= 769px) */
