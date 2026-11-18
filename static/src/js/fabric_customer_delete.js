@@ -29,10 +29,9 @@ patch(FormController.prototype, {
                                 <i class="fa fa-comments-o toggle-icon"></i>
                                 <span class="toggle-title">Activity Notes, Logs &amp; Message History (Chatter)</span>
                             </div>
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="toggle-action-pill pill-view chatter-show-pill">View Chatter &#9660;</span>
-                                <span class="toggle-action-pill pill-hide chatter-hide-pill" style="display: none !important;">Hide Chatter &#9650;</span>
-                                <i class="fa fa-chevron-down accordion-arrow"></i>
+                            <div class="d-flex align-items-center">
+                                <span class="fabric-pill-btn chatter-show-pill">View Chatter <i class="fa fa-chevron-down ms-1"></i></span>
+                                <span class="fabric-pill-btn chatter-hide-pill" style="display: none !important;">Hide Chatter <i class="fa fa-chevron-up ms-1"></i></span>
                             </div>
                         </div>
                     `;
@@ -48,13 +47,11 @@ patch(FormController.prototype, {
                             toggleBar.classList.add("is-open");
                             toggleBar.querySelector(".chatter-show-pill").style.setProperty("display", "none", "important");
                             toggleBar.querySelector(".chatter-hide-pill").style.setProperty("display", "inline-flex", "important");
-                            toggleBar.querySelector(".accordion-arrow").style.transform = "rotate(180deg)";
                         } else {
                             chatter.style.display = "none";
                             toggleBar.classList.remove("is-open");
                             toggleBar.querySelector(".chatter-show-pill").style.setProperty("display", "inline-flex", "important");
                             toggleBar.querySelector(".chatter-hide-pill").style.setProperty("display", "none", "important");
-                            toggleBar.querySelector(".accordion-arrow").style.transform = "";
                         }
                     });
                 } else {

@@ -101,11 +101,11 @@ input[type="number"] {
     -moz-appearance: textfield !important;
 }
 
-/* Customer Khata - High-Contrast Collapsible Accordions (Customer Details & Chatter) */
+/* Customer Khata - Elegant Collapsible Accordions (Customer Details & Chatter) */
 .fabric-customer-details-accordion {
-    border: 1.5px solid #cbd5e1 !important;
+    border: 1px solid #e2e8f0 !important;
     border-radius: 8px !important;
-    background-color: #f8fafc !important;
+    background-color: #ffffff !important;
     margin-bottom: 1.25rem !important;
     transition: all 0.2s ease-in-out !important;
     overflow: hidden !important;
@@ -113,9 +113,8 @@ input[type="number"] {
 
 .fabric-customer-details-accordion[open],
 .fabric-customer-details-accordion.is-open {
-    background-color: #ffffff !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
-    border-color: #3b82f6 !important;
+    border-color: #cbd5e1 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
 }
 
 .fabric-customer-details-accordion summary.fabric-details-toggle,
@@ -126,11 +125,11 @@ input[type="number"] {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    background-color: #f1f5f9 !important;
-    color: #0f172a !important;
+    background-color: #f8fafc !important;
+    color: #1e293b !important;
     user-select: none !important;
     border-bottom: 1px solid transparent !important;
-    transition: background-color 0.15s ease, color 0.15s ease !important;
+    transition: background-color 0.15s ease !important;
 }
 
 .fabric-customer-details-accordion summary.fabric-details-toggle::-webkit-details-marker {
@@ -139,65 +138,56 @@ input[type="number"] {
 
 .fabric-customer-details-accordion summary.fabric-details-toggle:hover,
 .fabric-customer-details-accordion .fabric-details-toggle:hover {
-    background-color: #e2e8f0 !important;
-    color: #000000 !important;
+    background-color: #f1f5f9 !important;
 }
 
 .fabric-customer-details-accordion[open] summary.fabric-details-toggle,
 .fabric-customer-details-accordion.is-open .fabric-details-toggle {
-    background-color: #eff6ff !important;
-    border-bottom: 1.5px solid #bfdbfe !important;
+    background-color: #f8fafc !important;
+    border-bottom: 1px solid #e2e8f0 !important;
 }
 
-/* Bold Title & Icon */
+/* Elegant Title & Icon */
 .fabric-details-toggle .toggle-title {
-    font-size: 0.95rem !important;
+    font-size: 0.925rem !important;
     font-weight: 700 !important;
-    color: #0f172a !important;
+    color: #1e293b !important;
     letter-spacing: -0.01em !important;
 }
 
-.fabric-customer-details-accordion[open] .fabric-details-toggle .toggle-title,
-.fabric-customer-details-accordion.is-open .fabric-details-toggle .toggle-title {
-    color: #1d4ed8 !important;
-}
-
 .fabric-details-toggle .toggle-icon {
-    font-size: 1.15rem !important;
-    color: #2563eb !important;
+    font-size: 1.1rem !important;
+    color: #475569 !important;
 }
 
-/* Vibrant Action Buttons */
-.fabric-details-toggle .toggle-action-pill {
+/* Elegant Neutral Pill Button (Clean, Subtle, High-End) */
+.fabric-details-toggle .fabric-pill-btn {
     display: inline-flex !important;
     align-items: center !important;
     gap: 6px !important;
-    font-size: 0.8rem !important;
+    font-size: 0.825rem !important;
     font-weight: 600 !important;
+    color: #334155 !important;
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
     padding: 5px 14px !important;
-    border-radius: 20px !important;
-    transition: all 0.15s ease !important;
+    border-radius: 6px !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+    transition: all 0.15s ease-in-out !important;
 }
 
-.fabric-details-toggle .pill-view {
-    background-color: #2563eb !important;
-    color: #ffffff !important;
-    border: 1px solid #1d4ed8 !important;
-    box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3) !important;
+.fabric-details-toggle .fabric-pill-btn:hover {
+    background-color: #f8fafc !important;
+    border-color: #94a3b8 !important;
+    color: #0f172a !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08) !important;
 }
 
-.fabric-details-toggle .pill-view:hover {
-    background-color: #1d4ed8 !important;
-}
-
-.fabric-details-toggle .pill-hide {
-    background-color: #475569 !important;
-    color: #ffffff !important;
-    border: 1px solid #334155 !important;
-}
-
-.fabric-details-toggle .pill-hide:hover {
-    background-color: #334155 !important;
+.fabric-customer-details-accordion[open] .fabric-details-toggle .fabric-pill-btn,
+.fabric-customer-details-accordion.is-open .fabric-details-toggle .fabric-pill-btn {
+    background-color: #f1f5f9 !important;
+    border-color: #94a3b8 !important;
+    color: #0f172a !important;
 }
 
 .fabric-customer-details-accordion .details-show-text {
@@ -216,18 +206,6 @@ input[type="number"] {
 .fabric-customer-details-accordion[open] .details-hide-text {
     display: inline-flex !important;
     align-items: center !important;
-}
-
-.fabric-customer-details-accordion .accordion-arrow {
-    font-size: 0.85rem !important;
-    color: #475569 !important;
-    transition: transform 0.2s ease !important;
-}
-
-.fabric-customer-details-accordion[open] .accordion-arrow,
-.fabric-customer-details-accordion.is-open .accordion-arrow {
-    transform: rotate(180deg) !important;
-    color: #1d4ed8 !important;
 }
 
 .fabric-customer-details-accordion .details-content {
